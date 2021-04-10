@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# build folder
+robot_hole_problem/build/
