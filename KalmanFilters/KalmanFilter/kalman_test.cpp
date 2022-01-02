@@ -5,7 +5,6 @@
 
 #include "kalman.hpp"
 
-#define WITHOUT_NUMPY
 #include "matplotlibcpp.h"
 
 int main() {
