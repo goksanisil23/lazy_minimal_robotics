@@ -3,7 +3,7 @@
 #include <iostream>
 #include <Eigen/Dense>
 
-class KalmanFilter {
+class ExtendedKalmanFilter {
 
 public:
 
@@ -14,7 +14,7 @@ public:
     // Q : Process noise covariance
     // R : Measurement noise covariance
     // P0 : Initial error covariance
-    KalmanFilter(
+    ExtendedKalmanFilter(
     const Eigen::MatrixXd& A,
     const Eigen::MatrixXd& B,
     const Eigen::MatrixXd& C,
@@ -35,7 +35,7 @@ public:
     Eigen::VectorXd get_state() {return x_hat_post;};
 
     // Return the current state error covariance
-    Eigen::MatrixXd get_P() {return P_post;};    
+    Eigen::VectorXd get_P() {return P_post;};    
 
 private:
     // Matrices used in predict and correction steps

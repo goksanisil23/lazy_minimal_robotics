@@ -1,3 +1,11 @@
+/**
+ * @brief This is a simple example usage of the vanilla Kalman Filter
+ * It is used to estimate the value of a constant variable, through noisy measurements (y)
+ *
+ * x_(k+1) = 1 * x_(k) + 1 * u_(k) + w_(k) --> We do not have any input to the system, so u_(k) = 0 
+ * y_(k) = 1 * x_(k) + v_(k) --> Measurements are directly the state we want to estimate, though noisy
+ */
+
 #include <iostream>
 #include <vector>
 #include <random>
@@ -32,7 +40,7 @@ int main() {
     B << 1; // we wont provide any input but still need to have a non-zero dim. matrix
     C << 1;
 
-    // Covariance matrices
+    // Covariance matrices for the Kalman Filter
     Q << 0.00001;
     P0 << 1.0;
     R << (meas_noise_real_std_dev) * (meas_noise_real_std_dev); // take "true" measurement error variance
@@ -61,24 +69,11 @@ int main() {
         kalman_f.prediction_update(u);
         kalman_f.innovation_update(y);
 
-
-        x_hat_buffer.push_back(kalman_f.get_state()[0]);
+        // store the history
+        x_hat_buffer.push_back(kalman_f.get_state()(0));
         x_buffer.push_back(x_real);
-        y_buffer.push_back(y[0]);
-        P_buffer.push_back(kalman_f.get_P()[0]);
-
-        // // Rendering
-        // matplotlibcpp::clf();
-        // matplotlibcpp::subplot(1, 2, 1);
-        // matplotlibcpp::named_plot("x hat", x_hat_buffer);
-        // matplotlibcpp::named_plot("measurement", y_buffer, ".r");
-        // matplotlibcpp::named_plot("x true", x_buffer, "y");
-        // matplotlibcpp::grid(true);
-        // matplotlibcpp::legend();
-        // matplotlibcpp::subplot(1, 2, 2);
-        // matplotlibcpp::named_plot("P", P_buffer);
-        // matplotlibcpp::grid(true);
-        // matplotlibcpp::pause(0.0001);        
+        y_buffer.push_back(y(0));
+        P_buffer.push_back(kalman_f.get_P()(0));
     }
         // Rendering
         matplotlibcpp::clf();
