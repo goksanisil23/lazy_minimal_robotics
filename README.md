@@ -5,7 +5,7 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 ### TODO
 
 - [x] Kalman Filter
-- [ ] Extended Kalman Filter
+- [x] Extended Kalman Filter
 - [ ] Unscented Kalman Filter
 - [ ] Iterated Kalman Filter
 - [ ] Particle filter
