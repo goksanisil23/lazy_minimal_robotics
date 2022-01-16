@@ -115,6 +115,11 @@
         "jacobi": "cpp",
         "lu": "cpp",
         "qr": "cpp",
-        "svd": "cpp"
+        "svd": "cpp",
+        "vertexarraystate": "cpp",
+        "buffered_value": "cpp",
+        "matrixd": "cpp",
+        "matrixf": "cpp",
+        "*.m": "cpp"
     }
 }

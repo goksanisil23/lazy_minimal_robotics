@@ -43,6 +43,11 @@
 
 namespace plt = matplotlibcpp;
 
+
+/* 
+    User defined EKF models
+*/
+
 // Motion model of the 2D robot, which takes velocity and angular rate as input. States are 2D position, yaw and velocity
 Eigen::Vector4d motion_model(const Eigen::Vector4d& X, const Eigen::Vector2d& U, const float& dt) {
     Eigen::Matrix4d A;
@@ -109,6 +114,31 @@ Eigen::Vector2d process_input_func(const float& dt) {
     
 }
 
+/* ----------------- End of user defined EKF models ---------------------------- */
+
+// Calculate the root mean squared error of estimated states and plot
+void calculate_RMSE(const std::vector<Eigen::VectorXd>& X_true_buffer, const std::vector<Eigen::VectorXd>& X_est_buffer) 
+{
+    std::vector<double> err_x, err_y, err_h, err_v;
+    Eigen::Vector4d rmse(0, 0, 0, 0);
+
+    for (int i = 0; i < X_true_buffer.size(); i++) {
+        // calculate sample & state based absolute error
+        err_x.push_back((std::fabs(X_true_buffer.at(i)(0) - X_est_buffer.at(i)(0))));
+        err_y.push_back((std::fabs(X_true_buffer.at(i)(1) - X_est_buffer.at(i)(1))));
+        err_h.push_back((std::fabs(X_true_buffer.at(i)(2) - X_est_buffer.at(i)(2))));
+        err_v.push_back((std::fabs(X_true_buffer.at(i)(3) - X_est_buffer.at(i)(3))));
+        // accumulate squared error
+        Eigen::VectorXd residual = X_true_buffer.at(i) - X_est_buffer.at(i);
+        residual = residual.array() * residual.array();
+        rmse += residual;
+    }
+    rmse = rmse / X_true_buffer.size();
+    rmse = rmse.array().sqrt(); 
+    std::cout << "RMSE:\n" << rmse << std::endl;
+}
+
+
 int main() {
 
 
@@ -130,7 +160,7 @@ int main() {
     ekf_filter.jacobian_F = jacobian_F;
     ekf_filter.jacobian_H = jacobian_H;    
 
-    // Some initial guess for the state we're trying to estimate
+    // Some initial guess for the states we're trying to estimate [x y h v]
     Eigen::Vector4d x0(0, 0, 0, 0);
     ekf_filter.init(x0);
 
@@ -138,8 +168,8 @@ int main() {
     std::default_random_engine rand_gen(0); // with a seed 0 for repeatibility
     std::normal_distribution<double> normal_dist_noise(0.0, 1.0);
     // scale the noise
-    Eigen::Matrix2d meas_noise = Eigen::Vector2d(0.5, 0.5).array().square().matrix().asDiagonal();
-    Eigen::Matrix2d input_noise = Eigen::Vector2d(1.0, 30.0/180.0*M_PI).array().square().matrix().asDiagonal();
+    Eigen::Matrix2d meas_noise = Eigen::Vector2d(0.5, 0.5).array().square().matrix().asDiagonal(); // about 0.5m measurement noise
+    Eigen::Matrix2d input_noise = Eigen::Vector2d(1.0, 30.0/180.0*M_PI).array().square().matrix().asDiagonal(); // about 1.0m/s and 30deg. input noise
 
     // True initial state variable
     Eigen::Vector4d X_true(0, 0, 0, 0);
@@ -151,6 +181,9 @@ int main() {
     std::vector<double> x_dead_buffer{X_dead_reckon(0)}, y_dead_buffer{X_dead_reckon(1)};
     std::vector<double> z_meas_buffer_x, z_meas_buffer_y;
     std::vector<double> P_buffer_x, P_buffer_y;
+    std::vector<double> nis_buffer;
+    std::vector<Eigen::VectorXd> X_true_buffer;
+    std::vector<Eigen::VectorXd> X_est_buffer;
     
     matplotlibcpp::figure_size(800,600);
     std::cin.get();
@@ -168,12 +201,12 @@ int main() {
         Eigen::Vector2d u_meas = u + input_noise * 
                         Eigen::Vector2d(normal_dist_noise(rand_gen), normal_dist_noise(rand_gen)); // add noise to input
 
+        // Calculate dead-reckoning --> just iterate the motion model with measurement (no correction)
+        X_dead_reckon = motion_model(X_dead_reckon, u_meas, dt);
+        
         // Execute EKF with the noisy measurements
         ekf_filter.prediction_update(u_meas);
         ekf_filter.innovation_update(z_meas);        
-
-        // Calculate dead-reckoning --> just iterate the motion model with measurement (no correction)
-        X_dead_reckon = motion_model(X_dead_reckon, u_meas, dt);
 
         // store the history
         x_hat_buffer.push_back(ekf_filter.get_state()(0));
@@ -186,20 +219,35 @@ int main() {
         z_meas_buffer_y.push_back(z_meas(1));
         P_buffer_x.push_back(ekf_filter.get_P()(0,0));
         P_buffer_y.push_back(ekf_filter.get_P()(1,1));
+        nis_buffer.push_back(ekf_filter.get_NIS());
+        X_est_buffer.push_back(ekf_filter.get_state());
+        X_true_buffer.push_back(X_true);
 
-        plt::clf();
-        plt::named_plot("x hat", x_hat_buffer, y_hat_buffer);
-        plt::named_plot("x true", x_true_buffer, y_true_buffer, "y");
-        plt::named_plot("x deadreckon", x_dead_buffer, y_dead_buffer, "k");
-        plt::named_plot("measurement", z_meas_buffer_x, z_meas_buffer_y, ".g");
-        plt::grid(true);
-        plt::legend();
-        plt::ylabel("y [m.]");
-        plt::xlabel("x [m.]");
-        plt::pause(0.001);
+        // plt::clf();
+        // plt::named_plot("x hat", x_hat_buffer, y_hat_buffer);
+        // plt::named_plot("x true", x_true_buffer, y_true_buffer, "y");
+        // plt::named_plot("x deadreckon", x_dead_buffer, y_dead_buffer, "k");
+        // plt::named_plot("measurement", z_meas_buffer_x, z_meas_buffer_y, ".g");
+        // plt::grid(true);
+        // plt::legend();
+        // plt::ylabel("y [m.]");
+        // plt::xlabel("x [m.]");
+        // plt::pause(0.001);
 
 
     }
+        // double const chi_table_dof2_0_05 = 5.991;
+        // std::vector<double> chi_buffer(nis_buffer.size(), chi_table_dof2_0_05); 
+        // plt::clf();
+        // plt::named_plot("NIS", nis_buffer, ".-");
+        // plt::named_plot("chi val", chi_buffer);
+        // plt::grid(true);
+        // plt::legend();
+        // plt::ylabel("y [m.]");
+        // plt::xlabel("x [m.]");
+        // plt::pause(0.00);    
+
+        calculate_RMSE(X_true_buffer, X_est_buffer);
 
     return 0;
 }

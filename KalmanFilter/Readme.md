@@ -1,5 +1,8 @@
 ## Kalman Filter
-Estimates the states of a system (or process) that can be described by linear system equations.
+Kalman Filter estimates the states of a system (or process) that can be described by linear system equations. It's a resursive least-squares estimation
+that allows to combine information from motion (process) model with sensor measurements.
+
+It can be used to estimate both the unmeasurable or the measurable but noisy states of the system. 
 
 - P = state error covariance: Encrypts the error covariance that the filter thinks the estimated error has.
 - Process noise covariance (Q) and measurement noise covaraince (R) can change each time step or measurement in reality, but we assume constant here. 
