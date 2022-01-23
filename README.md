@@ -6,6 +6,6 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 
 - [x] Kalman Filter
 - [x] Extended Kalman Filter
-- [ ] Unscented Kalman Filter
+- [x] Unscented Kalman Filter
 - [ ] Iterated Kalman Filter
 - [ ] Particle filter

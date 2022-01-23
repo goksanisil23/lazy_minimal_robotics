@@ -120,6 +120,9 @@
         "buffered_value": "cpp",
         "matrixd": "cpp",
         "matrixf": "cpp",
-        "*.m": "cpp"
+        "*.m": "cpp",
+        "csetjmp": "cpp",
+        "forward_list": "cpp",
+        "unordered_set": "cpp"
     }
 }

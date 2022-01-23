@@ -32,7 +32,9 @@ Similar to process update, a new set of sigma points are calculated from x_hat_p
 These 2 terms are used to calculate the Kalman gain.
 
 A popular parametrization to choose the weights and sigma points:
+
 ![](/UnscentedKalmanFilter/resources/choosing_sigma.png)
+
 where **Aj** is the j'th column of A, where P_k|k+1 = A*A^T. 
 
 ## Toy example:
