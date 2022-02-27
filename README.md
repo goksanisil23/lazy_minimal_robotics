@@ -1,5 +1,5 @@
 # lazy_minimal_robotics
-Minimal implementations for personally interesting ideas &amp; algorithms that can be useful for robotics applications
+Minimal implementations for personally interesting ideas &amp; algorithms that can be useful for robotics applications, in C/C++.
 
 
 ### TODO
@@ -9,3 +9,5 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [x] Unscented Kalman Filter
 - [ ] Iterated Kalman Filter
 - [ ] Particle filter
+- [ ] ICP
+- [ ] Optical Flow
