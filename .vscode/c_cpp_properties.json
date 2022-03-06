@@ -6,7 +6,9 @@
                 "${default}",
                 "/home/goksan/Work/carla/Examples/CppClient/libcarla-install/include/carla",
                 "/home/goksan/Work/carla/Examples/CppClient/libcarla-install/include",
-                "/usr/local/include/eigen3"
+                "/usr/local/include/eigen3",
+                "/usr/local/include/open3d/3rdparty",
+                "/usr/include/pcl-1.10"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
