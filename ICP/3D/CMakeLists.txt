@@ -16,7 +16,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../External/Argparse)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../External/MRPT)
 
 #########################
-add_executable(icp_example main_icp.cpp)
+add_executable(icp_example main.cpp)
 add_definitions(${PCL_DEFINITIONS})
 target_include_directories(icp_example PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(icp_example PUBLIC 

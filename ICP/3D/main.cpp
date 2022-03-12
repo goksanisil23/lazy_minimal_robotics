@@ -1,6 +1,6 @@
 #include <chrono>
 #include "argparse.hpp"
-#include "ICP.hpp"
+#include "PointToPoint.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -57,7 +57,8 @@ int main(int argc, char *argv[])
     target = (R * input).colwise()  + T;
 
     // Create an ICP object and execute the alignment
-    ICP icpNaive(30, program.get<bool>("-visualize") ); // max_iterations, visualize
+    // ICP::PointToPoint icpNaive(30, program.get<bool>("-visualize") ); // max_iterations, visualize
+    ICP::PointToPlane icpNaive(30, program.get<bool>("-visualize") ); // max_iterations, visualize
     auto start_time = std::chrono::high_resolution_clock::now();
     Eigen::Matrix4f trans(icpNaive.rigidTransform3D(input, target));
     auto end_time = std::chrono::high_resolution_clock::now();
