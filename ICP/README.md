@@ -49,7 +49,7 @@ The algorithm looks as follows:
 - Apply the SVD result to the input.
 - Check if the correspondences have converged. If not, repeat from 2nd step.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ICP/3D/resources/3d_point_to_plane.png" width=50% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ICP/3D/resources/3d_point_to_plane.gif" width=30% height=30%>
 
 ### References
 - [1] https://en.wikipedia.org/wiki/Kabsch_algorithm

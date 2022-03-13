@@ -33,3 +33,5 @@
 
 # build folders
 build/
+
+*settings.json*

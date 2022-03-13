@@ -11,3 +11,4 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [ ] Particle filter
 - [ ] ICP
 - [ ] Optical Flow
+- [ ] Factor graph object tracking
