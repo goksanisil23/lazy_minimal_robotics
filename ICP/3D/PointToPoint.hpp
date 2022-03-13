@@ -12,13 +12,17 @@ public:
         {}
 
 
-    Eigen::Matrix4f rigidTransform3D(Eigen::MatrixXf input, Eigen::MatrixXf target)
+    Eigen::Matrix4f rigidTransform3D(Eigen::MatrixXf input, Eigen::MatrixXf target) override
     {
+        std::cout << "Point to Point" << std::endl;
+        
         Eigen::Matrix3f R;
         Eigen::Vector3f T;
         Eigen::Matrix4f Trans_total = Eigen::Matrix4f::Identity(); // accumulated homogenous transformation 
+        
         Eigen::Vector3f centroid_target = target.rowwise().mean();
         Eigen::MatrixXf target_centered =  target.colwise() - centroid_target;
+
         std::vector<int16_t> correspondences(input.cols()); // same order as the input container : input -> target
         std::vector<int16_t> prev_correspond(correspondences); // same order as the input container : input -> target
 
@@ -32,7 +36,6 @@ public:
             // findCorrespondencesBruteForce(input_centered, target_centered, correspondences);
             findCorrespondencesKnn(input_centered, target_centered, correspondences);
             if(visualize) drawCorrespondences(input, target, correspondences);
-            // if(visualize) drawCorrespondences(input_centered, target_centered, correspondences);
 
             // 3) Compute the covariance matrix H
             Eigen::Matrix3f H = computeCrossCovar(input_centered, target_centered, correspondences);

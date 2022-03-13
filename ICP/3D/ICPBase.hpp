@@ -36,6 +36,9 @@ public:
         }
     }
 
+    virtual ~ICPBase() {};
+    virtual Eigen::Matrix4f rigidTransform3D(Eigen::MatrixXf input, Eigen::MatrixXf target) = 0; // will be overloaded
+
     Eigen::Matrix3f computeCrossCovar(const Eigen::MatrixXf& input, const Eigen::MatrixXf& target, const std::vector<int16_t>& correspondences)
     {
         Eigen::Matrix3f H = Eigen::Matrix3f::Zero();
