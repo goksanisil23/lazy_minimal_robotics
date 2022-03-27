@@ -9,6 +9,7 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [x] Unscented Kalman Filter
 - [ ] Iterated Kalman Filter
 - [ ] Particle filter
-- [ ] ICP
-- [ ] Optical Flow
+- [x] ICP
+- [ ] Visual Odometry with SIFT features
+- [ ] Visual Odometry with Optical Flow
 - [ ] Factor graph object tracking

@@ -8,7 +8,8 @@
                 "/home/goksan/Work/carla/Examples/CppClient/libcarla-install/include",
                 "/usr/local/include/eigen3",
                 "/usr/local/include/open3d/3rdparty",
-                "/usr/include/pcl-1.10"
+                "/usr/include/pcl-1.10",
+                "/usr/include/opencv4"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
