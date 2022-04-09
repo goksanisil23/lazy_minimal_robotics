@@ -31,6 +31,10 @@
 *.out
 *.app
 
+# artifacts
+*.jpg
+*.png
+
 # build folders
 build/
 

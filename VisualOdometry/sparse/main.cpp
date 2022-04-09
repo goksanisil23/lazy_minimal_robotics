@@ -38,8 +38,8 @@ using namespace std::string_literals;
 
 constexpr int16_t IMAGE_WIDTH = 1024;
 constexpr int16_t IMAGE_HEIGHT = 640;
-// constexpr float CAMERA_POS_X = 2.0;
-constexpr float CAMERA_POS_X = -5.5;
+constexpr float CAMERA_POS_X = 2.0; // front of the car
+// constexpr float CAMERA_POS_X = -5.5; // behind the car
 constexpr float CAMERA_POS_Y = 0.0;
 constexpr float CAMERA_POS_Z = 2.8;
 constexpr u_int32_t NUM_SIM_STEPS = 1000;
@@ -48,7 +48,7 @@ constexpr double SIM_STEP_TIME = 0.1; // secs
 #define EXPECT_TRUE(pred) if (!(pred)) { throw std::runtime_error(#pred); }
 
 // Converts Carla RGB Camera image to OpenCV image, by popping the oldest element in the queue
-void CarlaToOpenCV(TSQueue<boost::shared_ptr<csd::Image>>& carla_image_queue, cv::Mat& cv_img)
+void CarlaRGBToOpenCV(TSQueue<boost::shared_ptr<csd::Image>>& carla_image_queue, cv::Mat& cv_img)
 {
   boost::shared_ptr<csd::Image> carla_img_ptr;
   carla_image_queue.dequeue(carla_img_ptr);
@@ -68,17 +68,41 @@ void CarlaToOpenCV(TSQueue<boost::shared_ptr<csd::Image>>& carla_image_queue, cv
     }
 }
 
-Eigen::Matrix3f getCameraIntrinsic(const carla::client::BlueprintLibrary::value_type& camera_bp)
+// Converts carla depth image to Opencv 1 channel depth image, by popping the oldest element in the queue
+void CarlaDepthToOpenCV(TSQueue<boost::shared_ptr<csd::Image>>& carla_image_queue, cv::Mat& cv_img)
 {
-  Eigen::Matrix3f K = Eigen::Matrix3f::Identity(); // intrinsics matrix for pinhole
+  boost::shared_ptr<csd::Image> carla_img_ptr;
+  carla_image_queue.dequeue(carla_img_ptr);
+
+    csd::Color* image_data = carla_img_ptr->data();
+    
+    for(int ii = 0; ii < IMAGE_HEIGHT; ii++)
+    {
+      for(int jj = 0; jj < IMAGE_WIDTH; jj++)
+      {
+        csd::Color color = image_data[jj + ii*IMAGE_WIDTH];
+        double& depth_at_pixel = cv_img.at<double>(ii,jj); 
+        depth_at_pixel = static_cast<double>(color.r + color.g * 256 + color.b * 256 * 256) / static_cast<double>(256 * 256 * 256 - 1) * 1000.0;
+      }
+    }
+}
+
+cv::Mat getCameraIntrinsic(const carla::client::BlueprintLibrary::value_type& camera_bp)
+{
+  // Eigen::Matrix3f K = Eigen::Matrix3f::Identity(); // intrinsics matrix for pinhole
   int image_w = camera_bp.GetAttribute("image_size_x").As<int>();
   int image_h = camera_bp.GetAttribute("image_size_y").As<int>();
   float fov = camera_bp.GetAttribute("fov").As<float>();
-  float focal = image_w / (2.0 * std::tan(fov * M_PI / 360.0));
-  K(0,0) = focal;
-  K(1,1) = focal;
-  K(0,2) = image_w/2.0;
-  K(1,2) = image_h/2.0;
+  float focal = static_cast<float>(image_w) / (2.0f * std::tan(fov * M_PI / 360.0f));
+  float c_x = static_cast<float>(image_w)/2.0;
+  float c_y = static_cast<float>(image_h)/2.0;
+
+  cv::Mat K = (cv::Mat_<float>(3,3) << focal, 0.0, c_x,
+                                       0.0, focal, c_y,
+                                       0.0, 0.0, 1.0);
+
+  std::cout << "Camera Instrinsics:" << std::endl;
+  std::cout << K << std::endl;
   return K;
 }
 
@@ -110,17 +134,18 @@ int main() {
 
     // // Find a valid spawn point.
     auto map = world.GetMap();
-    auto transform = map->GetRecommendedSpawnPoints()[1];
+    auto transform = map->GetRecommendedSpawnPoints()[10];
 
     // // Spawn the vehicle.
     auto actor = world.SpawnActor(*vehicle_bp, transform);
     std::cout << "Spawned " << actor->GetDisplayId() << '\n';
     auto vehicle = boost::static_pointer_cast<cc::Vehicle>(actor);
     vehicle->SetAutopilot(true);
-    vehicle->OpenDoor(cc::Vehicle::VehicleDoor::All);
+    traffic_manager.SetPercentageRunningLight(vehicle, 100.0);
 
     // Find a camera blueprint.
     auto camera_rgb_bp = (*(blueprint_library->Filter("sensor.camera.rgb")))[0];
+    auto camera_depth_bp = (*(blueprint_library->Filter("sensor.camera.depth")))[0];
     // Spawn a camera attached to the vehicle.
     auto camera_transform = cg::Transform{
         cg::Location{CAMERA_POS_X, CAMERA_POS_Y, CAMERA_POS_Z},   // x, y, z.
@@ -128,40 +153,75 @@ int main() {
 
     camera_rgb_bp.SetAttribute("image_size_x", std::to_string(IMAGE_WIDTH));
     camera_rgb_bp.SetAttribute("image_size_y", std::to_string(IMAGE_HEIGHT));
+    camera_depth_bp.SetAttribute("image_size_x", std::to_string(IMAGE_WIDTH));
+    camera_depth_bp.SetAttribute("image_size_y", std::to_string(IMAGE_HEIGHT));    
 
-    auto camera_actor = world.SpawnActor(camera_rgb_bp, camera_transform, actor.get());   
-    auto camera = boost::static_pointer_cast<cc::Sensor>(camera_actor);
+    auto rgb_camera_actor = world.SpawnActor(camera_rgb_bp, camera_transform, actor.get());   
+    auto rgb_camera = boost::static_pointer_cast<cc::Sensor>(rgb_camera_actor);
+    auto depth_camera_actor = world.SpawnActor(camera_depth_bp, camera_transform, actor.get());   
+    auto depth_camera = boost::static_pointer_cast<cc::Sensor>(depth_camera_actor);
 
     // Thread-safe queue for storing the captured images
-    TSQueue<boost::shared_ptr<csd::Image>> carla_image_queue;
-    camera->Listen([&](auto data)
+    TSQueue<boost::shared_ptr<csd::Image>> carla_rgb_image_queue;
+    rgb_camera->Listen([&](auto data)
     {
       boost::shared_ptr<csd::Image> image_ptr = boost::static_pointer_cast<csd::Image>(data);
-      carla_image_queue.enqueue(image_ptr);
+      carla_rgb_image_queue.enqueue(image_ptr);
     });
+
+    TSQueue<boost::shared_ptr<csd::Image>> carla_depth_image_queue;
+    depth_camera->Listen([&](auto data)
+    {
+      boost::shared_ptr<csd::Image> image_ptr = boost::static_pointer_cast<csd::Image>(data);
+      carla_depth_image_queue.enqueue(image_ptr);
+    });    
 
     // Create the VISO instance
     VISO::Sparse viso_sparse(getCameraIntrinsic(camera_rgb_bp));
 
     cv::Mat cv_img(IMAGE_HEIGHT,IMAGE_WIDTH, CV_8UC3, cv::Scalar(0,0,0));
+    cv::Mat cv_depth_img(IMAGE_HEIGHT,IMAGE_WIDTH, CV_64F, cv::Scalar(0.0));
+    cg::Transform camera_origo;
+    cg::Transform camera_odom;
+    bool init_frame = true;
+    std::vector<float> x_traj, y_traj, z_traj;
     // Advance the simulation
     for(int ii = 0; ii < NUM_SIM_STEPS; ii++)
     {
       auto frame_id = world.Tick(1s); // timeout
-
-      CarlaToOpenCV(carla_image_queue, cv_img);
-      viso_sparse.step(cv_img);
-      // cv::imshow("carla bgr",cv_img);
-      cv::waitKey(10);
-
       std::this_thread::sleep_for(1ms);
-      std::cout << "sim frame id: " << frame_id << std::endl;
-      auto camera_pose = camera->GetTransform();
-      std::cout << camera_pose.location.x << " " << camera_pose.location.y << " " << camera_pose.location.z << std::endl;  
+      if(ii > 10)
+      {
+        CarlaRGBToOpenCV(carla_rgb_image_queue, cv_img);
+        CarlaDepthToOpenCV(carla_depth_image_queue, cv_depth_img);
+
+        // Get true camera pose
+        cg::Transform camera_pose = rgb_camera->GetTransform();
+        if(init_frame)
+        {
+          camera_origo = camera_pose;
+          init_frame = false;
+        }
+        // Visualize
+        cg::Vector3D camera_position(camera_pose.location.x, camera_pose.location.y, camera_pose.location.z);
+        camera_origo.InverseTransformPoint(camera_position);
+        std::cout << "true cam:\n" << camera_position.x << " " << camera_position.y << " " << camera_position.z << std::endl;
+        x_traj.push_back(camera_position.y);
+        y_traj.push_back(camera_position.x);
+        z_traj.push_back(camera_position.z);
+        matplotlibcpp::clf();
+        matplotlibcpp::named_plot("true",x_traj,y_traj,"-o");        
+
+        // VISO
+        // cv::imwrite("/home/goksan/Work/lazy_minimal_robotics/VisualOdometry/sparse/imgs/img_" + std::to_string(ii) + ".jpg", cv_img);
+        viso_sparse.updateAbsScale(camera_pose.location.x, camera_pose.location.y, camera_pose.location.z);
+        // viso_sparse.stepEssentialMatrixDecomp(cv_img);
+        viso_sparse.stepPnP(cv_img, cv_depth_img); 
+      } 
     }
 
     // Remove actors from the simulation.
-    camera->Destroy();
+    rgb_camera->Destroy();
     vehicle->Destroy(); 
 
 

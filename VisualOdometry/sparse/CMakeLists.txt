@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.8)
 project(viso)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -fPIC -O3")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -fPIC -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -fPIC")
 
 # Carla
 set(LIB_CARLA_PATH "/home/goksan/Work/carla/Examples/CppClient/libcarla-install")
@@ -16,6 +17,9 @@ if(OpenCV_FOUND)
 endif(OpenCV_FOUND)
 
 find_package(Eigen3 3.4)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 COMPONENTS NumPy)
+
 
 add_executable(${CMAKE_PROJECT_NAME} main.cpp)
 
@@ -33,6 +37,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PUBLIC
 )
 
 include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../External/Matplotlib)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} 
 	carla_client
@@ -46,4 +51,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 	DetourCrowd
 	# Open3D::Open3D
 	${OpenCV_LIBS}
+    Python3::Python
+    Python3::Module
+    Python3::NumPy	
 )

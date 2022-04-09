@@ -8,7 +8,7 @@ template <class T>
 class TSQueue
 {
 public:
-    TSQueue() : queue_(), m_(), cond_() {}
+    TSQueue() : queue_(), m_(), cond_(), queue_size_limit_{20} {}
 
     // ~TSQueue() {};
 
@@ -16,6 +16,10 @@ public:
     void enqueue(const T& el)
     {
         std::lock_guard<std::mutex> lock(m_);
+        if(queue_.size() > queue_size_limit_) // remove oldest element if the buffer grew too much
+        {
+            queue_.pop();
+        }
         queue_.push(el);
         cond_.notify_one();
     }
@@ -39,5 +43,6 @@ private:
     std::queue<T> queue_;
     std::mutex m_;
     std::condition_variable cond_;
+    const uint8_t queue_size_limit_; // to avoid the buffer growing too big
 
 };
