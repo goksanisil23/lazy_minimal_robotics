@@ -222,6 +222,7 @@ int main() {
 
     // Remove actors from the simulation.
     rgb_camera->Destroy();
+    depth_camera->Destroy();
     vehicle->Destroy(); 
 
 

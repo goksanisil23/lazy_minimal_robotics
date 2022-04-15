@@ -126,7 +126,6 @@ public:
         cv::Mat descriptors, good_descriptors; // (N_desriptor_size x N_keypoints_size)
         orb_->detectAndCompute(img_gray, cv::Mat(), keypoints, descriptors);
         descriptors.convertTo(descriptors, CV_32F);
-        // cv::drawKeypoints(input_image, keypoints, input_image);
 
         // 2) Match against previous frame features
         std::vector<std::vector<cv::DMatch>> knn_matches;
@@ -144,7 +143,7 @@ public:
                     good_keypoints.push_back(keypoints.at(el[0].trainIdx).pt);
                     
                     // Transform pixel coordinates to 3D camera coordinates using pinhole camera model
-                    // 3D-world points specified in (k-1), their matches specified in (k) in pixel coordinates
+                    // 3D-camera points specified in (k-1), their matches specified in (k) in pixel coordinates
                     double depth = prev_depth_img_.at<double>(good_prev_keypoints.back().y, good_prev_keypoints.back().x);
                     double x_world = (good_prev_keypoints.back().x - c_x_) * depth / f_x_;
                     double y_world = (good_prev_keypoints.back().y - c_y_) * depth / f_y_;
@@ -164,7 +163,8 @@ public:
             cv::drawMatches(prev_img_, prev_keypoints_, img_gray, keypoints, good_matches, img_matches,
                 cv::Scalar::all(-1), cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
             cv::imshow("matches", img_matches);
-            cv::waitKey(10);
+            cv::moveWindow("matches", 1200, 30);
+            cv::waitKey(100);
         
             // 3) Estimate motion
             // Only use good matched keypoints, get the scale from the depth camera and use PnP
@@ -184,8 +184,8 @@ public:
             // // Visualize
             // matplotlibcpp::clf();
             matplotlibcpp::named_plot("viso",x_traj,z_traj,"-o");
-            matplotlibcpp::xlim(-200,200);
-            matplotlibcpp::ylim(-200,200);
+            matplotlibcpp::xlim(-10,100);
+            matplotlibcpp::ylim(-20,100);
             matplotlibcpp::grid(true);
             matplotlibcpp::legend();            
             matplotlibcpp::pause(0.0001);
