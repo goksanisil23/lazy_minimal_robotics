@@ -215,7 +215,7 @@ int main() {
         // VISO
         // cv::imwrite("/home/goksan/Work/lazy_minimal_robotics/VisualOdometry/sparse/imgs/img_" + std::to_string(ii) + ".jpg", cv_img);
         viso_sparse.updateAbsScale(camera_pose.location.x, camera_pose.location.y, camera_pose.location.z);
-        // viso_sparse.stepEssentialMatrixDecomp(cv_img);
+        // viso_sparse.stepEssentialMatrixDecomp(cv_img, cv_depth_img);
         viso_sparse.stepPnP(cv_img, cv_depth_img); 
       } 
     }

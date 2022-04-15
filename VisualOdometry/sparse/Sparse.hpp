@@ -34,11 +34,11 @@ public:
     }
 
 
-    void stepEssentialMatrixDecomp(cv::Mat& input_image)
+    void stepEssentialMatrixDecomp(cv::Mat& rgb_image, cv::Mat& depth_image)
     {
         // 1) Extract features & descriptors
         cv::Mat img_gray;
-        cv::cvtColor(input_image, img_gray, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(rgb_image, img_gray, cv::COLOR_BGR2GRAY);
         std::vector<cv::KeyPoint> keypoints;
         std::vector<cv::Point2f> good_keypoints, good_prev_keypoints;
         cv::Mat descriptors, good_descriptors; // (N_desriptor_size x N_keypoints_size)
@@ -81,15 +81,10 @@ public:
             std::cout << "t_current: " << t_current << std::endl;
             std::cout << "R_current: " << R_current << std::endl;
 
-            if(cv::determinant(R_total) < 0.0)
-            {
-                R_current = -R_current;
-                t_current = -t_current;
-            }
-
+            R_total = R_current * R_total;
             t_total = t_total + R_total * (abs_scale_* t_current);
             // t_total = t_total + R_total * t_current;
-            R_total = R_current * R_total;
+            // R_total = R_current * R_total;
 
             // std::cout << "t_total:\n" << t_total << std::endl;
             
@@ -99,8 +94,8 @@ public:
 
             // Visualize
             matplotlibcpp::named_plot("viso",x_traj,z_traj,"-o");
-            matplotlibcpp::xlim(-100,100);
-            matplotlibcpp::ylim(-100,100);
+            matplotlibcpp::xlim(-10,100);
+            matplotlibcpp::ylim(-20,150);
             matplotlibcpp::grid(true);
             matplotlibcpp::legend();            
             matplotlibcpp::pause(0.0001);
@@ -157,13 +152,12 @@ public:
                 }
                     
             }
-            // std::cout << "total matches: " << knn_matches.size() << " chosen: " << good_matches.size() << std::endl;
             cv::Mat img_matches;
             // only draw the good matches
             cv::drawMatches(prev_img_, prev_keypoints_, img_gray, keypoints, good_matches, img_matches,
                 cv::Scalar::all(-1), cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
             cv::imshow("matches", img_matches);
-            cv::moveWindow("matches", 1200, 30);
+            cv::moveWindow("matches", 30, 500);
             cv::waitKey(100);
         
             // 3) Estimate motion
@@ -185,7 +179,7 @@ public:
             // matplotlibcpp::clf();
             matplotlibcpp::named_plot("viso",x_traj,z_traj,"-o");
             matplotlibcpp::xlim(-10,100);
-            matplotlibcpp::ylim(-20,100);
+            matplotlibcpp::ylim(-20,150);
             matplotlibcpp::grid(true);
             matplotlibcpp::legend();            
             matplotlibcpp::pause(0.0001);
