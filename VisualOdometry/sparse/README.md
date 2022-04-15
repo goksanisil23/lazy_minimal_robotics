@@ -6,8 +6,7 @@ Image formation:
 
 **Camera Intrinsics (K)**: Project from camera coordinates --> Image coordinates
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/world_camera_image.png" width=30% height=50%>
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/world_to_pixel_eq.png" width=27% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/world_camera_image.png" width=30% height=50%>  <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/world_to_pixel_eq.png" width=27% height=50%>
 
 ## Fundamental Matrix (2D-2D)
 - Epipolar geometry: When 2 camera views are seeing same 3D world point (this can be either from a stereo camera setup, or a single moving camera seeing the same point at 2 instances in time), triangulation of the camera centers with the 3D world point leads to certain geometric relations that are studied under epipolar geometry.
@@ -47,8 +46,7 @@ Minimization of the residual given above corresponds to minimizing the reproject
 
 In camera calibration, PnP is utilized to find the camera extrinsics with respect to an object with known dimensions (like checkerboard) in 3D. Note that in the calibration case, the extrinsics of the camera will be with respect to the 3D-world origin from which the 3D points of the known object is measured (e.g. top left corner of the checker board being (0,0,0) )
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/world_to_camera.png" width=30% height=50%>
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/PNP_odom.png" width=30% height=10%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/world_to_camera.png" width=30% height=50%>   <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/PNP_odom.png" width=30% height=10%>
 
 
 In the case of visual odometry however, we're interested in how the camera has moved w.r.t previous pose of the camera. So instead, we place the 3D-world origin at the previous frame's camera center. For PnP, this means:
@@ -71,7 +69,7 @@ y_world = (prev_keypoint.y - c_y) * depth / f_y;
 world_pt = (x_world, y_world, depth); 
 ```
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/viso_pnp.gif" width=1000% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/viso_pnp.gif" width=100% height=50%>
 
 
 ### References
