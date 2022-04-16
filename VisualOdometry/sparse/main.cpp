@@ -149,12 +149,12 @@ int main() {
     // Spawn a camera attached to the vehicle.
     auto camera_transform = cg::Transform{
         cg::Location{CAMERA_POS_X, CAMERA_POS_Y, CAMERA_POS_Z},   // x, y, z.
-        cg::Rotation{0.0f, 0.0f, 0.0f}}; // pitch, yaw, roll.
+        cg::Rotation{10.0f, 0.0f, 0.0f}}; // pitch, yaw, roll.
 
     camera_rgb_bp.SetAttribute("image_size_x", std::to_string(IMAGE_WIDTH));
     camera_rgb_bp.SetAttribute("image_size_y", std::to_string(IMAGE_HEIGHT));
     camera_depth_bp.SetAttribute("image_size_x", std::to_string(IMAGE_WIDTH));
-    camera_depth_bp.SetAttribute("image_size_y", std::to_string(IMAGE_HEIGHT));    
+    camera_depth_bp.SetAttribute("image_size_y", std::to_string(IMAGE_HEIGHT));
 
     auto rgb_camera_actor = world.SpawnActor(camera_rgb_bp, camera_transform, actor.get());   
     auto rgb_camera = boost::static_pointer_cast<cc::Sensor>(rgb_camera_actor);
@@ -190,11 +190,10 @@ int main() {
     {
       auto frame_id = world.Tick(1s); // timeout
       std::this_thread::sleep_for(1ms);
-      if(ii > 10)
+      CarlaRGBToOpenCV(carla_rgb_image_queue, cv_img);
+      CarlaDepthToOpenCV(carla_depth_image_queue, cv_depth_img);      
+      if(ii > 30) // wait until the vehicle is moving a bit
       {
-        CarlaRGBToOpenCV(carla_rgb_image_queue, cv_img);
-        CarlaDepthToOpenCV(carla_depth_image_queue, cv_depth_img);
-
         // Get true camera pose
         cg::Transform camera_pose = rgb_camera->GetTransform();
         if(init_frame)
@@ -205,17 +204,19 @@ int main() {
         // Visualize
         cg::Vector3D camera_position(camera_pose.location.x, camera_pose.location.y, camera_pose.location.z);
         camera_origo.InverseTransformPoint(camera_position);
-        std::cout << "true cam:\n" << camera_position.x << " " << camera_position.y << " " << camera_position.z << std::endl;
+        // std::cout << "true cam:\n" << camera_position.x << " " << camera_position.y << " " << camera_position.z << std::endl;
         x_traj.push_back(camera_position.y);
         y_traj.push_back(camera_position.x);
         z_traj.push_back(camera_position.z);
+
         matplotlibcpp::clf();
-        matplotlibcpp::named_plot("true",x_traj,y_traj,"-o");        
+        matplotlibcpp::named_plot("true",x_traj,y_traj,"-o");
 
         // VISO
-        // cv::imwrite("/home/goksan/Work/lazy_minimal_robotics/VisualOdometry/sparse/imgs/img_" + std::to_string(ii) + ".jpg", cv_img);
         viso_sparse.updateAbsScale(camera_pose.location.x, camera_pose.location.y, camera_pose.location.z);
+        // A)
         // viso_sparse.stepEssentialMatrixDecomp(cv_img, cv_depth_img);
+        // B)
         viso_sparse.stepPnP(cv_img, cv_depth_img); 
       } 
     }

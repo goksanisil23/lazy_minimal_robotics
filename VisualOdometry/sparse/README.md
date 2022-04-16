@@ -1,26 +1,41 @@
 # Sparse Visual Odometry
 
-Image formation:
-
 **Camera Extrinsics (R & t)**: Project from world coordinates (object point in 3d space) --> Camera coordinates (originated at the location of camera) 
 
 **Camera Intrinsics (K)**: Project from camera coordinates --> Image coordinates
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/world_camera_image.png" width=30% height=50%>  <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/world_to_pixel_eq.png" width=27% height=50%>
 
-## Fundamental Matrix (2D-2D)
+## Pose Estimation via Fundamental Matrix (2D-2D)
 - Epipolar geometry: When 2 camera views are seeing same 3D world point (this can be either from a stereo camera setup, or a single moving camera seeing the same point at 2 instances in time), triangulation of the camera centers with the 3D world point leads to certain geometric relations that are studied under epipolar geometry.
 
-- Epipolar line: When we form a ray from C_0 to p_0, all possible points on this line projected onto camera 1 creates an epipolar line.
+- Epipolar line: When we form a ray from camera 0 origin to scene point, all possible points on this line projected onto camera 1 creates an epipolar line.
 
 - Epipole: Points where the baseline intersects the two image planes.
 
 - Epipolar plane: Plane defined by the 3D world point seen by both cameras, and the centers of 2 cameras.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/epipolar_line.png" width=30% height=50%>
+- Epipolar constraint: Dot product of the vector normal to epipolar plane and the vector of world point P in one of the camera coordinate frames, equals to 0.
 
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/epipolar_constraint.png" width=30% height=50%>
 
-## Perspective-N-Point (3D-2D)
+Epipolar constraint, together with the inter-camera relation **`x_l = R*x_r + t`** forms the equation for the essential matrix. Fundamental property of essential matrix is that it can be decomposed into the translation and rotation components.
+
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/essential_matrix_eq.png" width=30% height=50%>
+
+However, xl and xr above are the 3D coordinates of the same scene point in 2 camera frames, which we do not have, hence we cannot directly use essential matrix to recover pose. 
+
+Instead, we have the corresponding image coordinates. Incorporating perspective pinhole projection equations (3d->2d) into the essential matrix equation gives: 
+
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/fundamental_matrix_1.png" width=30% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/fundamental_matrix_2.png" width=30% height=50%>
+
+where K_l and K_r are the intrinsics of the cameras. Note that fundamental matrix F and kF describe the same epipolar geometry. So, F is only defined up-to-scale. With this loss of dof, we need at least 8 pixel correspondences between cameras to solve for F.
+
+In this implementation, we used the ground truth from CARLA to get the true scale of the relative translation t between successive camera frames.
+
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/viso_essential_matrix.gif" width=100% height=50%>
+
+## Pose Estimation via Perspective-N-Point (3D-2D)
 In order to recover the camera pose from known 3D-to-2D correspondences, PnP can be used. OpenCV's solvePnPRansac implementation solves PnP as follows:
 1) Find an initial guess of R & t via Direct Linear Transform (DLT). 
 
@@ -33,7 +48,7 @@ DLT approach assumes that camera pose has 12 degrees of freedom (unknowns), wher
 
 2) Use DLT as an initial guess for non-linear least-squares optimization:
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/least_square_PNP.png" width=20% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/least_square_PNP.png" width=30% height=50%>
 
 where K is the intrinsics, P is the 3D-world point, s is the scale factor and u is the pixel coordinates in homogenous form.
 Minimization of the residual given above corresponds to minimizing the reprojection error shown below. Since we know the matching feature points in both images, we're trying to find the best translation and rotation parameters that minimizes the distance between re-projected feature point p_2_hat and the actual matched feature point p_2.
@@ -71,8 +86,12 @@ world_pt = (x_world, y_world, depth);
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/viso_pnp.gif" width=100% height=50%>
 
+## Pitfalls
+- Although both approaches use distance based filtering to reduce false matches, this does not entirely remove all especially for the textures in the image that are quite similar.
+
 
 ### References
 
-[1]: https://web.stanford.edu/class/cs231a/course_notes/03-epipolar-geometry.pdf
-[2]: https://github.com/gaoxiang12/slambook-en/blob/master/slambook-en.pdf
+- https://web.stanford.edu/class/cs231a/course_notes/03-epipolar-geometry.pdf 
+- https://github.com/gaoxiang12/slambook-en/blob/master/slambook-en.pdf
+- https://www.youtube.com/watch?v=_rfKoEBGK7E&list=PL2zRqk16wsdoCCLpou-dGo7QQNks1Ppzo&index=9 
