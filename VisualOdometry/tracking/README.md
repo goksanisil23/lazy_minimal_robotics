@@ -31,15 +31,15 @@ Note that for optical flow to work, `A^T*A` must be well-conditioned:
 **What happens when motion is large?**
 In the case of large motion, the main optical flow constraint is not satisfied anymore. To overcome this, a resolution pyramid is used to start with a coarse estimation and propagate to finer estimations. The idea is that, a large motion of a scene point in high res image, will be smaller if the same scene is represented in a lower res image (since there arent as many pixels). Therefore, we start with estimating the optical flow in the smallest resolution image pairs (image[t], image[t+1]), and we use the OF result of the previous step to propagate the optical flow to higher resolution images.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/tracking/resources/klt_pyramid.png" width=30% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/tracking/resources/klt_pyramid.png" width=70% height=50%>
 
 
 ## Usage in Motion Estimation
 Optical flow can be utilized to keep track of the image features between successive frames, as an alternative to re-running feature extraction and feature matching in each frame. The approach in this implementation is as follows:
 - Pick the best N corners in the image via Shi-Thomasi corner detector.
 - Via KLT optical flow, get the coordinates of these features in the next frame.
-    - To verify the tracked points, re-run optical flow in reverse order and check if the result matches with the original feature point's coordinates.
+    - To verify the tracked points, re-run optical flow in reverse order with the result of the forward optical flow and check if the result matches with the original feature point's coordinates.
     - Eliminate the keypoints that do not match.
 - use PnP with RANSAC to solve for relative pose, by utilizing 2D-3D correspondences. 3D world-points of the tracked features are obtained from the depth camera.
 - When the number of tracked features fall below a threshold number, re-trigger the corner detector.
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/tracking/resources/viso_oflow.gif" width=30% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/tracking/resources/viso_oflow.gif" width=100% height=50%>
