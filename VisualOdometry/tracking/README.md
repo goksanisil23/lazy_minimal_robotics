@@ -22,7 +22,7 @@ Optical flow by nature is an underconstrained problem, since 1 constraint equati
 
 To overcome this, Lukas-Kanade approach assumes all pixels *within a small neighborhood* (3x3 window) have the same motion field, which gives a number of equations for unknowns u & v, that can be solved by least-squares.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/tracking/resources/lucas_kanade_matrix.png" width=30% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/tracking/resources/lucas_kanade_solution.png" width=30% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/tracking/resources/lucas_kanade_matrix.png" width=30% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/tracking/resources/lukas_kanade_solution.png" width=30% height=50%>
 
 Note that for optical flow to work, `A^T*A` must be well-conditioned:
 - Both eigen values are not too small: Meaning no change in intensities of pixels over time: e.g. textureless sky
