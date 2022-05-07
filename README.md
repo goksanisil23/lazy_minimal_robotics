@@ -10,6 +10,9 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [ ] Iterated Kalman Filter
 - [ ] Particle filter
 - [x] ICP
-- [ ] Visual Odometry with SIFT features
-- [ ] Visual Odometry with Optical Flow
+- [x] Monocular Visual Odometry with SIFT/ORB features
+- [x] Monocular Visual Odometry with Optical Flow
+- [ ] Structure from Motion with Bundle Adjustment
+- [ ] Structure from Motion with Pose Graph Optimization
+- [ ] Dense Reconstruction via Multi-View Stereo
 - [ ] Factor graph object tracking
