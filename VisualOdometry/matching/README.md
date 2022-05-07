@@ -44,16 +44,16 @@ In order to recover the camera pose from known 3D-to-2D correspondences, PnP can
 The extrinsics matrix T=(R|t) above contains 12 unknowns, and each feature point provides 2 linear constraints. Therefore, linear solution of the matrix T can be found by at least 6 pairs of matching feature points. If there are more than 6 pairs, SVD can also be used to find closed-form least-square solution of the overdetermined equation.
 
 ***So are we done?***   
-DLT approach assumes that camera pose has 12 degrees of freedom (unknowns), whereas in reality it has only 6 due to rotation having 3dof instead of 9dof.Therefore, DLT solution does not consider R being in 3D rotation group SO(3). Although QR decomposition can be used to extract a proper rotation matrix R, since the closed-form solution itself does not contain this constraint, DLT solution is not final.
+DLT approach assumes that camera pose has 12 degrees of freedom (unknowns), whereas in reality it has only 6 due to rotation having 3dof instead of 9dof. Therefore, DLT solution does not consider R being in 3D rotation group SO(3). Although QR decomposition can be used to extract a proper rotation matrix R, since the closed-form solution itself does not contain this constraint, DLT solution is not final.
 
 2) Use DLT as an initial guess for non-linear least-squares optimization:
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/least_square_PNP.png" width=30% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/matching/resources/least_square_PNP.png" width=30% height=50%>
 
 where K is the intrinsics, P is the 3D-world point, s is the scale factor and u is the pixel coordinates in homogenous form.
 Minimization of the residual given above corresponds to minimizing the reprojection error shown below. Since we know the matching feature points in both images, we're trying to find the best translation and rotation parameters that minimizes the distance between re-projected feature point p_2_hat and the actual matched feature point p_2.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/reprojection_error.png" width=20% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/matching/resources/reprojection_error.png" width=20% height=50%>
 
 3) The reprojection error described above is considered for all "n" matching feature pairs. With RANSAC, we introduce a threshold so that points having higher reprojection error are considered as outliers and eliminated from error minimization. 
 
@@ -61,7 +61,7 @@ Minimization of the residual given above corresponds to minimizing the reproject
 
 In camera calibration, PnP is utilized to find the camera extrinsics with respect to an object with known dimensions (like checkerboard) in 3D. Note that in the calibration case, the extrinsics of the camera will be with respect to the 3D-world origin from which the 3D points of the known object is measured (e.g. top left corner of the checker board being (0,0,0) )
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/world_to_camera.png" width=30% height=50%>   <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/PNP_odom.png" width=30% height=10%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/matching/resources/world_to_camera.png" width=30% height=50%>   <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/matching/resources/PNP_odom.png" width=30% height=10%>
 
 
 In the case of visual odometry however, we're interested in how the camera has moved w.r.t previous pose of the camera. So instead, we place the 3D-world origin at the previous frame's camera center. For PnP, this means:
@@ -84,7 +84,7 @@ y_world = (prev_keypoint.y - c_y) * depth / f_y;
 world_pt = (x_world, y_world, depth); 
 ```
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/sparse/resources/viso_pnp.gif" width=100% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/matching/resources/viso_pnp.gif" width=100% height=50%>
 
 ## Pitfalls
 - Although both approaches use distance based filtering to reduce false matches, this does not entirely remove all especially for the textures in the image that are quite similar.
