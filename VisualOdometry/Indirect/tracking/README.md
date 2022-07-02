@@ -1,10 +1,10 @@
-# Visual Odometry Via Optical Flow Corner Feature Tracking
+# Visual Odometry Via Sparse Optical Flow Corner Feature Tracking
 
 The goal of optical flow is to generate a 2D flow field that describes how the pixels in the image are moving in time to create a representation of the dynamics of the scene.
 
 Optical flow has 2 main assumptions:
 - Displacement of pixels (`dx` & `dy`) and time step (`dt`) are small 
-- The brightness of the image point in 2 successive frames remains constant over time. (reasonable given 1st assumption)
+- The brightness of an entity in pixel space in 2 successive frames remains constant over time. (reasonable given 1st assumption)
 
 These assumptions allow simplification of higher order terms in Taylor series:
 
@@ -35,7 +35,10 @@ In the case of large motion, the main optical flow constraint is not satisfied a
 
 
 ## Usage in Motion Estimation
-Optical flow can be utilized to keep track of the image features between successive frames, as an alternative to re-running feature extraction and feature matching in each frame. The approach in this implementation is as follows:
+Optical flow can be utilized to keep track of the image features between successive frames, as an alternative to re-running feature extraction and feature matching in each frame.
+
+
+The approach in this implementation is as follows:
 - Pick the best N corners in the image via Shi-Thomasi corner detector.
 - Via KLT optical flow, get the coordinates of these features in the next frame.
     - To verify the tracked points, re-run optical flow in reverse order with the result of the forward optical flow and check if the result matches with the original feature point's coordinates.
