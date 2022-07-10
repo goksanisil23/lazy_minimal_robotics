@@ -1,4 +1,4 @@
-## Ceres
+# Ceres
 Ceres is an optimization library for solving problems that can be formulated as non-linear least-squares. It provides tools to construct an optimization problem one term at a time and a solver API that controls minimization algorithm.
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/Ceres/resources/residual_block.png" width=50% height=50%>
@@ -15,3 +15,8 @@ The way Ceres enables this is through
 so that internally `<double>()` is called when residual is needed, and `<Jet>()` is called when the Jacobian is needed.
 
 For each observation (sample) point, the user creates a new instance of the residual class for that point, and then adds it to the optimization problem. This is equivalent to constructing the concatanated Jacobian matrix in the Gauss Newton example.
+
+## Example
+In the example below, we are trying to estimate the parameters of a ground truth function`y = exp(mx+c)` which is observed under some Gaussian noise.
+
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/Ceres/resources/ceres.png" width=50% height=50%>

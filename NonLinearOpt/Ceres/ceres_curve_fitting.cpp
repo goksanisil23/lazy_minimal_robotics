@@ -6,17 +6,17 @@
 #include <ceres/autodiff_cost_function.h>
 #include <ceres/ceres.h>
 #include <ceres/iteration_callback.h>
+#include <ceres/loss_function.h>
 #include <ceres/types.h>
 #include <chrono>
 #include <iostream>
 #include <opencv4/opencv2/core/core.hpp>
-#include <vector>
 
-#include "matplotlibcpp.h"
-namespace plt = matplotlibcpp;
+#include <matplot/matplot.h>
+#include <utility>
 
 constexpr int N_SAMPLES = 100;
-constexpr double W_SIGMA = 1.0; // Observation noise
+constexpr double W_SIGMA = 0.5; // Observation noise
 constexpr std::pair<double, double> SAMPLE_INTERVAL{0.0, 5.0};
 constexpr double SAMPLE_SPACING =
     (SAMPLE_INTERVAL.second - SAMPLE_INTERVAL.first) / (N_SAMPLES - 1);
@@ -63,12 +63,12 @@ private:
 };
 
 // The real function we're trying to approximate
-double evaluateObservation(const double &x) {
+void evaluateObservation(const double &x, double &gt_sample,
+                         double &observation_sample) {
   static cv::RNG rand_gen; // random number generator
-
   double noise = rand_gen.gaussian(W_SIGMA * W_SIGMA);
-  double gt_sample = cv::exp(M * x + C) + noise;
-  return gt_sample;
+  gt_sample = cv::exp(M * x + C);
+  observation_sample = gt_sample + noise;
 }
 
 // Optimized model sampled at the observation points
@@ -88,13 +88,14 @@ int main() {
   double m = 0.0;
   double c = 0.0;
 
-  // Get all the observation samples from the osbervation equation
+  // Get all the noisy observation and ground truth samples from the observation
+  // equation
   int idx = 0;
-  std::vector<double> x_gt(N_SAMPLES), y_gt(N_SAMPLES);
+  std::vector<double> x_gt(N_SAMPLES), y_gt(N_SAMPLES), y_obs(N_SAMPLES);
   for (double x = SAMPLE_INTERVAL.first; x <= SAMPLE_INTERVAL.second;
        x += SAMPLE_SPACING) {
     x_gt.at(idx) = x;
-    y_gt.at(idx) = evaluateObservation(x);
+    evaluateObservation(x, y_gt.at(idx), y_obs.at(idx));
 
     idx++;
   }
@@ -105,8 +106,17 @@ int main() {
   for (int i = 0; i < N_SAMPLES; i++) {
     ceres_problem.AddResidualBlock(
         new ceres::AutoDiffCostFunction<ExponentialResidual, 1, 1, 1>(
-            new ExponentialResidual(x_gt.at(i), y_gt.at(i))),
+            new ExponentialResidual(x_gt.at(i), y_obs.at(i))),
         nullptr, &m, &c);
+  }
+  // Another ceres optimizer but this time,
+  // add a loss function to the cost function, as Cauchy Loss
+  ceres::Problem ceres_problem_with_loss_func;
+  for (int i = 0; i < N_SAMPLES; i++) {
+    ceres_problem_with_loss_func.AddResidualBlock(
+        new ceres::AutoDiffCostFunction<ExponentialResidual, 1, 1, 1>(
+            new ExponentialResidual(x_gt.at(i), y_obs.at(i))),
+        new ceres::CauchyLoss(0.5), &m, &c);
   }
 
   // Define solver options
@@ -125,19 +135,31 @@ int main() {
   std::cout << "Initial m: " << 0.0 << " c: " << 0.0 << "\n";
   std::cout << "Final   m: " << m << " c: " << c << "\n";
 
-  // Show the fit model
   std::vector<double> y_est(x_gt.size());
   evaluateModel(m, c, x_gt, y_est);
-  plt::figure_size(800, 600);
-  // plt::clf();
-  plt::plot(x_gt, y_gt, ".");
-  // plt::named_plot("y true", x_gt, y_gt, ".");
-  // plt::named_plot("y est", x_gt, y_est, "y");
-  plt::grid(true);
-  // plt::legend();
-  plt::ylabel("y ");
-  plt::xlabel("x ");
-  plt::pause(1);
+
+  // Reset and solve again with the other optimizer with loss function
+  m = 0.0;
+  c = 0.0;
+  ceres::Solve(solver_options, &ceres_problem_with_loss_func, &solver_summary);
+  std::cout << solver_summary.BriefReport() << "\n";
+  std::cout << "Initial m: " << 0.0 << " c: " << 0.0 << "\n";
+  std::cout << "Final   m: " << m << " c: " << c << "\n";
+
+  std::vector<double> y_est_with_loss(x_gt.size());
+  evaluateModel(m, c, x_gt, y_est_with_loss);
+
+  // Show the fit model
+  matplot::plot(x_gt, y_gt, "-")->line_width(3).display_name("ground truth");
+  matplot::hold(matplot::on);
+  matplot::plot(x_gt, y_obs, "o")->line_width(2).display_name("observation");
+  matplot::plot(x_gt, y_est, "-s")->line_width(2).display_name("estimate");
+  matplot::plot(x_gt, y_est_with_loss, "-x")
+      ->line_width(2)
+      .display_name("estimate with Cauchy loss");
+  matplot::legend();
+  matplot::grid(matplot::on);
+  matplot::show();
 
   return 0;
 }
