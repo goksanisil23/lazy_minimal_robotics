@@ -4,15 +4,15 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 
 ### TODO
 
-- [x] [Gauss-Newton](/NonLinearOpt/GaussNewton/README.md)
-- [x] [Kalman Filter](/KalmanFilter/Readme.md)
-- [x] [Extended Kalman Filter](/ExtendedKalmanFilter/Readme.md)
-- [x] [Unscented Kalman Filter](/UnscentedKalmanFilter/Readme.md)
+- [x] [Gauss-Newton](/NonLinearOpt/GaussNewton)
+- [x] [Kalman Filter](/KalmanFilter)
+- [x] [Extended Kalman Filter](/ExtendedKalmanFilter)
+- [x] [Unscented Kalman Filter](/UnscentedKalmanFilter)
 - [ ] Iterated Kalman Filter
 - [ ] Particle filter
-- [x] [ICP](/ICP/README.md)
-- [x] [Indirect Monocular Visual Odometry with SIFT/ORB features](/VisualOdometry/Indirect/matching/README.md)
-- [x] [Indirect Monocular Visual Odometry with Sparse Optical Flow](/VisualOdometry/Indirect/tracking/README.md)
+- [x] [ICP](/ICP)
+- [x] [Indirect Monocular Visual Odometry with SIFT/ORB features](/VisualOdometry/Indirect/matching)
+- [x] [Indirect Monocular Visual Odometry with Sparse Optical Flow](/VisualOdometry/Indirect/tracking)
 - [ ] Direct Monocular Visual Odometry
 - [ ] Structure from Motion with Bundle Adjustment
 - [ ] Structure from Motion with Pose Graph Optimization
