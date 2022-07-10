@@ -18,5 +18,6 @@ For each observation (sample) point, the user creates a new instance of the resi
 
 ## Example
 In the example below, we are trying to estimate the parameters of a ground truth function`y = exp(mx+c)` which is observed under some Gaussian noise.
+In one of the solvers, we're utilizing the Cauchy loss function in order to reduce the effect of outlier samples.
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/Ceres/resources/ceres.png" width=50% height=50%>

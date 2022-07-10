@@ -4,7 +4,8 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 
 ### TODO
 
-- [x] [Gauss-Newton](/NonLinearOpt/GaussNewton)
+- [x] [Gauss-Newton curve fitting](/NonLinearOpt/GaussNewton)
+- [x] [Ceres curve fitting](/NonLinearOpt/Ceres)
 - [x] [Kalman Filter](/KalmanFilter)
 - [x] [Extended Kalman Filter](/ExtendedKalmanFilter)
 - [x] [Unscented Kalman Filter](/UnscentedKalmanFilter)

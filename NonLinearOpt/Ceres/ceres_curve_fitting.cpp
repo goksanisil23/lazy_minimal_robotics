@@ -64,9 +64,14 @@ private:
 
 // The real function we're trying to approximate
 void evaluateObservation(const double &x, double &gt_sample,
-                         double &observation_sample) {
+                         double &observation_sample, const int &idx) {
   static cv::RNG rand_gen; // random number generator
-  double noise = rand_gen.gaussian(W_SIGMA * W_SIGMA);
+  double noise;
+  if (idx % 10 == 0) {
+    noise = 2.5; // to create some outliers
+  } else {
+    noise = rand_gen.gaussian(W_SIGMA * W_SIGMA);
+  }
   gt_sample = cv::exp(M * x + C);
   observation_sample = gt_sample + noise;
 }
@@ -95,7 +100,7 @@ int main() {
   for (double x = SAMPLE_INTERVAL.first; x <= SAMPLE_INTERVAL.second;
        x += SAMPLE_SPACING) {
     x_gt.at(idx) = x;
-    evaluateObservation(x, y_gt.at(idx), y_obs.at(idx));
+    evaluateObservation(x, y_gt.at(idx), y_obs.at(idx), idx);
 
     idx++;
   }
@@ -154,7 +159,7 @@ int main() {
   matplot::hold(matplot::on);
   matplot::plot(x_gt, y_obs, "o")->line_width(2).display_name("observation");
   matplot::plot(x_gt, y_est, "-s")->line_width(2).display_name("estimate");
-  matplot::plot(x_gt, y_est_with_loss, "-x")
+  matplot::plot(x_gt, y_est_with_loss, "-rx")
       ->line_width(2)
       .display_name("estimate with Cauchy loss");
   matplot::legend();
