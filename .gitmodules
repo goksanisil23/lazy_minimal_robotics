@@ -1,0 +1,3 @@
+[submodule "External/matplotplusplus"]
+	path = External/matplotplusplus
+	url = https://github.com/alandefreitas/matplotplusplus/

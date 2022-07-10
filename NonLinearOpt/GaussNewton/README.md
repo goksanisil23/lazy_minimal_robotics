@@ -23,7 +23,7 @@ In practice, `y_hat` is dependent on several m parameters, so `p` and `h` have d
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/GaussNewton/resources/eq2.png" width=15% height=30%>
 
-where J is the Jacobian matrix defined as the partial derivative of `y_hat` w.r.t each `j` element of `p` and `i` sample point x: `y` and `y_hat` contains values of `y(x)` and `y_hat(x,p)` evaluated at all sample points.
+where J is the Jacobian matrix defined as the partial derivative of `y_hat` w.r.t each `j` element of `p` and `i` sample point x: `y` and `y_hat` contains values of `y(x)` and `y_hat(x,p)` evaluated at all sample points. Jacobian is constructed for the user's model at the observation points.
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/GaussNewton/resources/jacobian.png" width=7% height=10%>
 
