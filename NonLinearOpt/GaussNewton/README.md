@@ -36,4 +36,4 @@ y = exp(a*x*x + b*x + c)
 `
 under some Gaussian sample measurement noise.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/GaussNewton/resources/gauss_newton.gif" width=40% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/GaussNewton/resources/gauss_newton.gif" width=70% height=70%>

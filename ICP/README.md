@@ -35,6 +35,7 @@ Since the rotation matrix in M contains nonlinear trigonometric functions, linea
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ICP/3D/resources/m_approx.png" width=40% height=40%>
 
 If all N pairs of correspondes are considered, solving (1) becomes equivalent to solving
+
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ICP/3D/resources/linear.png" width=30% height=50%>
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ICP/3D/resources/x.png" width=28% height=50%>
 
@@ -49,7 +50,7 @@ The algorithm looks as follows:
 - Apply the SVD result to the input.
 - Check if the correspondences have converged. If not, repeat from 2nd step.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ICP/3D/resources/3d_point_to_plane.gif" width=30% height=30%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ICP/3D/resources/3d_point_to_plane.gif" width=50% height=50%>
 
 ### References
 - [1] https://en.wikipedia.org/wiki/Kabsch_algorithm
