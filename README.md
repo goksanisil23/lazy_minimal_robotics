@@ -6,6 +6,7 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 
 - [x] [Gauss-Newton curve fitting](/NonLinearOpt/GaussNewton)
 - [x] [Ceres curve fitting](/NonLinearOpt/Ceres)
+- [x] [g2o Graph curve fitting](/NonLinearOpt/GraphOpt)
 - [x] [Kalman Filter](/KalmanFilter)
 - [x] [Extended Kalman Filter](/ExtendedKalmanFilter)
 - [x] [Unscented Kalman Filter](/UnscentedKalmanFilter)
