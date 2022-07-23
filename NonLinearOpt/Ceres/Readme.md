@@ -20,4 +20,44 @@ For each observation (sample) point, the user creates a new instance of the resi
 In the example below, we are trying to estimate the parameters of a ground truth function`y = exp(mx+c)` which is observed under some Gaussian noise.
 In one of the solvers, we're utilizing the Cauchy loss function in order to reduce the effect of outlier samples.
 
+The core of the implementation can be summarized by the following lines:
+```c++
+// Define the residual within the function call () operator as Ceres wants
+// in a templated manner for internal automatic differentiation for error Jacobian calculation
+struct ExponentialResidual {
+  ExponentialResidual(double x, double y) : x_(x), y_(y) {}
+
+  template <typename T>
+  bool operator()(const T *const m, const T *c, T *residual) const {
+    residual[0] = y_ - evaluteModelAtSamplePoint(m[0], c[0], x_);
+    return true;
+  }
+
+private:
+  const double x_;
+  const double y_;
+};
+
+/* ... */
+
+// Construct the Ceres optimization problem
+// by adding residual blocks constructed with observation samples
+ceres::Problem ceres_problem;
+for (int i = 0; i < N_SAMPLES; i++) {
+ceres_problem.AddResidualBlock(
+    new ceres::AutoDiffCostFunction<ExponentialResidual, 1, 1, 1>(
+        new ExponentialResidual(x_gt.at(i), y_obs.at(i))),
+    nullptr, &m, &c);
+}
+
+// Define solver options and solve
+ceres::Solver::Options solver_options;
+solver_options.max_num_iterations = 25;
+solver_options.linear_solver_type = ceres::DENSE_QR;
+
+ceres::Solve(solver_options, &ceres_problem, &solver_summary);
+
+```
+
+
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/Ceres/resources/ceres.png" width=50% height=50%>

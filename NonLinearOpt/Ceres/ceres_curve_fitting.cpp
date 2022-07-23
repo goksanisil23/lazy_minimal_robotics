@@ -15,6 +15,7 @@
 #include <matplot/matplot.h>
 #include <utility>
 
+// ************  Constants of this example ************ //
 constexpr int N_SAMPLES = 100;
 constexpr double W_SIGMA = 0.5; // Observation noise
 constexpr std::pair<double, double> SAMPLE_INTERVAL{0.0, 5.0};
@@ -24,20 +25,33 @@ constexpr double SAMPLE_SPACING =
 // Ground truth equation parameters
 constexpr double M = 0.3;
 constexpr double C = 0.1;
+// ************ ************ ************ //
+
+// Define and evaluate the model function whose parameters we're trying to
+// optimize
+template <typename T>
+T evaluteModelAtSamplePoint(const T &m_est, const T &c_est,
+                            const double &x_gt) {
+  return exp(m_est * x_gt + c_est);
+}
+
+// ************ Ceres Elements ************ //
 
 // Define the residual
 struct ExponentialResidual {
-  ExponentialResidual(double x, double y) : x_(x), y_(y) {}
+  ExponentialResidual(double x_sample, double y_obs)
+      : x_sample_(x_sample), y_obs_(y_obs) {}
 
   template <typename T>
   bool operator()(const T *const m, const T *c, T *residual) const {
-    residual[0] = y_ - exp(m[0] * x_ + c[0]);
+    residual[0] = y_obs_ - evaluteModelAtSamplePoint(m[0], c[0], x_sample_);
+    // residual[0] = y_ - exp(m[0] * x_ + c[0]);
     return true;
   }
 
 private:
-  const double x_;
-  const double y_;
+  const double x_sample_;
+  const double y_obs_;
 };
 
 // Define the callback function that'll be thrown every step of iteration
@@ -62,9 +76,11 @@ private:
   const double &c_est_;
 };
 
+// ************ ************ ************ //
+
 // The real function we're trying to approximate
-void evaluateObservation(const double &x, double &gt_sample,
-                         double &observation_sample, const int &idx) {
+void getObservation(const double &x, double &gt_sample,
+                    double &observation_sample, const int &idx) {
   static cv::RNG rand_gen; // random number generator
   double noise;
   if (idx % 10 == 0) {
@@ -76,17 +92,19 @@ void evaluateObservation(const double &x, double &gt_sample,
   observation_sample = gt_sample + noise;
 }
 
-// Optimized model sampled at the observation points
+// Current model sampled at all the observation points
 void evaluateModel(const double &m_est, const double &c_est,
                    const std::vector<double> &x_gt,
                    std::vector<double> &y_est) {
   int idx = 0;
   for (double x = SAMPLE_INTERVAL.first; x <= SAMPLE_INTERVAL.second;
        x += SAMPLE_SPACING) {
-    y_est.at(idx) = exp(m_est * x + c_est);
+    y_est.at(idx) = evaluteModelAtSamplePoint(m_est, c_est, x);
     idx++;
   }
 }
+
+// ************  MAIN ************ //
 
 int main() {
   // Initial guesses for the optimization parameters
@@ -100,7 +118,7 @@ int main() {
   for (double x = SAMPLE_INTERVAL.first; x <= SAMPLE_INTERVAL.second;
        x += SAMPLE_SPACING) {
     x_gt.at(idx) = x;
-    evaluateObservation(x, y_gt.at(idx), y_obs.at(idx), idx);
+    getObservation(x, y_gt.at(idx), y_obs.at(idx), idx);
 
     idx++;
   }

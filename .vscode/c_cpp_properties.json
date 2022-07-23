@@ -9,7 +9,8 @@
                 "/usr/local/include/eigen3",
                 "/usr/local/include/open3d/3rdparty",
                 "/usr/include/pcl-1.10",
-                "/usr/include/opencv4"
+                "/usr/include/opencv4",
+                "/usr/local/include/g2o"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",

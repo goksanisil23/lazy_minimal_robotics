@@ -39,7 +39,7 @@ In this implementation, we used the ground truth from CARLA to get the true scal
 In order to recover the camera pose from known 3D-to-2D correspondences, PnP can be used. OpenCV's solvePnPRansac implementation solves PnP as follows:
 1) Find an initial guess of R & t via Direct Linear Transform (DLT). 
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/DLT_1.png" width=20% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/DLT_1.png" width=40% height=50%>
 
 The extrinsics matrix T=(R|t) above contains 12 unknowns, and each feature point provides 2 linear constraints. Therefore, linear solution of the matrix T can be found by at least 6 pairs of matching feature points. If there are more than 6 pairs, SVD can also be used to find closed-form least-square solution of the overdetermined equation.
 
@@ -53,7 +53,7 @@ DLT approach assumes that camera pose has 12 degrees of freedom (unknowns), wher
 where K is the intrinsics, P is the 3D-world point, s is the scale factor and u is the pixel coordinates in homogenous form.
 Minimization of the residual given above corresponds to minimizing the reprojection error shown below. Since we know the matching feature points in both images, we're trying to find the best translation and rotation parameters that minimizes the distance between re-projected feature point p_2_hat and the actual matched feature point p_2.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/reprojection_error.png" width=20% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/reprojection_error.png" width=30% height=50%>
 
 3) The reprojection error described above is considered for all "n" matching feature pairs. With RANSAC, we introduce a threshold so that points having higher reprojection error are considered as outliers and eliminated from error minimization. 
 
