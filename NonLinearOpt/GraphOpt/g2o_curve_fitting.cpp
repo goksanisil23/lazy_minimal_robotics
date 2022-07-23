@@ -191,14 +191,17 @@ int main() {
   }
 
   // Show the fit model
-  matplot::plot(x_gt, y_gt, "-")->line_width(3).display_name("ground truth");
+  matplot::plot(x_gt, y_gt, "-")->line_width(6).display_name("ground truth");
   matplot::hold(matplot::on);
-  matplot::plot(x_gt, y_obs, "o")->line_width(2).display_name("observation");
-  matplot::plot(x_gt, y_est, "-s")->line_width(2).display_name("estimate");
+  matplot::plot(x_gt, y_obs, "o")
+      ->marker_size(10)
+      .line_width(4)
+      .display_name("observation");
+  matplot::plot(x_gt, y_est, "-s")->line_width(4).display_name("estimate");
   matplot::plot(x_gt, y_est_with_kernel, "-rx")
-      ->line_width(2)
+      ->line_width(4)
       .display_name("estimate with Cauchy Robust Kernel");
-  matplot::legend();
+  matplot::legend()->font_size(20);
   matplot::grid(matplot::on);
   matplot::show();
 
