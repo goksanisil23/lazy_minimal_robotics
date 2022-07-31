@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
-project(g2o-curve-fitting)
+project(g2o-example)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -45,11 +45,11 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../External/matplotplusplus ${CM
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${G2O_INCLUDE_DIR})
-message(STATUS "aaaaaaaaaaaaaaaaaaaaaaaa")
 message(STATUS ${G2O_LIBS})
 
 #########################
-add_executable(${CMAKE_PROJECT_NAME} g2o_curve_fitting.cpp)
+# add_executable(${CMAKE_PROJECT_NAME} g2o_curve_fitting.cpp)
+add_executable(${CMAKE_PROJECT_NAME} g2o_1d.cpp)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC
     ${OpenCV_LIBS}
     ${G2O_LIBS}

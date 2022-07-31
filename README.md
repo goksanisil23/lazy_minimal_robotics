@@ -16,6 +16,7 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [x] [Indirect Monocular Visual Odometry with SIFT/ORB features](/VisualOdometry/Indirect/matching)
 - [x] [Indirect Monocular Visual Odometry with Sparse Optical Flow](/VisualOdometry/Indirect/tracking)
 - [ ] Direct Monocular Visual Odometry
+- [ ] Direct with GPU
 - [ ] Structure from Motion with Bundle Adjustment
 - [ ] Structure from Motion with Pose Graph Optimization
 - [ ] Dense Reconstruction via Multi-View Stereo

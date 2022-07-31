@@ -1,4 +1,7 @@
 # Visual Odometry Via Sift/Orb Feature Matching
+In monocular visual odometry, in order to estimate the 3D pose of the camera, all methods require an observed 3D landmark at some point along the pipeline. However, extraction of the depth information is not possible from a single frame. But still, with the RGBD or stereo-camera setups, it's possible to obtain the depth information per pixel. Given that the depth info for at least 1 of the frames is somehow available, we will look into 2 setups:
+- **2D-2D:** Recovering 3D camera pose only up-to-scale
+- **3D-2D:** Given a 3D landmark in previous frame, estimate 3D pose with scale.
 
 **Camera Extrinsics (R & t)**: Project from world coordinates (object point in 3d space) --> Camera coordinates (originated at the location of camera) 
 
