@@ -6,7 +6,8 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 
 - [x] [Gauss-Newton curve fitting](/NonLinearOpt/GaussNewton)
 - [x] [Ceres curve fitting](/NonLinearOpt/Ceres)
-- [x] [g2o Graph curve fitting](/NonLinearOpt/GraphOpt)
+- [x] [g2o Unary Edge: Graph curve fitting](/NonLinearOpt/GraphOpt/##unary-edge-example)
+- [x] [g2o Binary Edge: 1D robot localization](/NonLinearOpt/GraphOpt/##binary-edge-example)
 - [x] [Kalman Filter](/KalmanFilter)
 - [x] [Extended Kalman Filter](/ExtendedKalmanFilter)
 - [x] [Unscented Kalman Filter](/UnscentedKalmanFilter)
