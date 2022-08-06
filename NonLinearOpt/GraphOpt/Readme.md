@@ -139,4 +139,4 @@ public:
 };
 ```
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/GraphOpt/resources/1d_g2o.png" width=50% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/GraphOpt/resources/1d_g2o.png" width=100% height=50%>
