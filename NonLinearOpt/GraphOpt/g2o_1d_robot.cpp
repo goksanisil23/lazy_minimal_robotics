@@ -26,9 +26,10 @@
 
 // ************  Constants of this example ************ //
 constexpr int N_ITER = 40;
-constexpr int N_POSES = 100;
+constexpr int N_POSES = 10;
 constexpr double ROBOT_STEP = 1.0; // true displacement (m)
-constexpr double W_SIGMA = 0.3;    // Observation and deadreckon noise
+constexpr double W_ODOM = 0.3;     // deadreckon noise
+constexpr double W_LANDMARK = 0.2; // Landmark Observation  noise
 
 constexpr int MARKER_SIZE = 20;
 constexpr int LINE_WIDTH = 6;
@@ -49,6 +50,7 @@ public:
     double project(const double &landmarkBelief)
     {
         // distance from landmark to robot (which is also what sensor measures)
+        // here _estimate is the robot pose
         return landmarkBelief - _estimate;
     }
 
@@ -79,7 +81,7 @@ class OdometryEdgeProjection
     : public g2o::BaseBinaryEdge<1, double, Vertex1DPose, Vertex1DLandmark>
 {
 public:
-    OdometryEdgeProjection(double odom_idx) : _odom_idx(odom_idx) {}
+    OdometryEdgeProjection() {}
 
     virtual void computeError() override
     {
@@ -91,9 +93,6 @@ public:
 
     virtual bool read(std::istream &) { return false; }
     virtual bool write(std::ostream &) const { return false; }
-
-private:
-    int _odom_idx;
 };
 
 // ************  MAIN ************ //
@@ -106,18 +105,18 @@ int main()
     cv::RNG rand_gen; // random number generator
 
     y_gt.at(0) = 0.0;
-    y_odom.at(0) = y_gt.at(0);                                                         // we know the exact initial position
-    landmark_obs.at(0) = (landmark_true - y_gt.at(0));                                 // true landmark distance
-    landmark_obs.at(0) += ((1.0 - rand_gen.gaussian(W_SIGMA * W_SIGMA)) * ROBOT_STEP); // add noise to observation
-    double landmark_init_est = y_gt.at(0) + landmark_obs.at(0);                        // we use the landmark observation from 1st pose as initial estimate of the landmark
+    y_odom.at(0) = y_gt.at(0);                                                       // we know the exact initial position
+    landmark_obs.at(0) = (landmark_true - y_gt.at(0));                               // true landmark distance
+    landmark_obs.at(0) += (rand_gen.gaussian(W_LANDMARK * W_LANDMARK) * ROBOT_STEP); // add noise to observation
+    double landmark_init_est = y_gt.at(0) + landmark_obs.at(0);                      // we use the landmark observation from 1st pose as initial estimate of the landmark
 
     for (int i = 1; i < N_POSES; i++)
     {
         y_gt.at(i) = y_gt.at(i - 1) + ROBOT_STEP;
-        double odom_step_with_noise = (1.0 + std::fabs(rand_gen.gaussian(W_SIGMA * W_SIGMA))) * ROBOT_STEP; // scale the noise with the unit step of robot
-        y_odom.at(i) = y_odom.at(i - 1) + odom_step_with_noise;
-        landmark_obs.at(i) = (landmark_true - y_gt.at(i));                         // true landmark distance
-        landmark_obs.at(i) += (rand_gen.gaussian(W_SIGMA * W_SIGMA) * ROBOT_STEP); // add noise to observation
+        double odom_step_with_noise = (1.0 + (rand_gen.gaussian(W_ODOM * W_ODOM))) * ROBOT_STEP; // scale the noise with the unit step of robot
+        y_odom.at(i) = y_odom.at(i - 1) + odom_step_with_noise;                                  // true robot pose
+        landmark_obs.at(i) = (landmark_true - y_gt.at(i));                                       // true landmark distance
+        landmark_obs.at(i) += (rand_gen.gaussian(W_LANDMARK * W_LANDMARK) * ROBOT_STEP);         // add noise to observation
     }
     std::cout << "landmark true: " << landmark_true << std::endl;
     std::cout << "landmark init est: " << landmark_init_est << std::endl;
@@ -152,14 +151,14 @@ int main()
     Vertex1DLandmark *vertex = new Vertex1DLandmark();
     vertex->setEstimate(landmark_init_est); // use the 1st landmark observation projection as initial estimate
     vertex->setId(y_odom.size());
-    vertex->setMarginalized(true);
+    vertex->setMarginalized(false);
     g2o_optimizer.addVertex(vertex);
     landmarkVertices.push_back(vertex);
 
     // Add edges (observations) to the graph
     for (int obs_idx = 0; obs_idx < y_odom.size(); obs_idx++)
     {
-        OdometryEdgeProjection *edge = new OdometryEdgeProjection(obs_idx);
+        OdometryEdgeProjection *edge = new OdometryEdgeProjection();
         edge->setId(obs_idx);
         // connect the 0th vertex of THIS EDGE to a given vertex
         edge->setVertex(0, poseVertices.at(obs_idx));
@@ -167,7 +166,7 @@ int main()
         edge->setVertex(1, landmarkVertices.at(0));
 
         edge->setMeasurement(landmark_obs.at(obs_idx));
-        edge->setInformation(Eigen::Matrix<double, 1, 1>::Identity());
+        edge->setInformation(Eigen::Matrix<double, 1, 1>::Identity() * 1.0 / (W_LANDMARK * W_LANDMARK));
         // if (use_robuts_kernel)
         //     edge->setRobustKernel(new g2o::RobustKernelCauchy());
         g2o_optimizer.addEdge(edge);
@@ -192,36 +191,18 @@ int main()
     std::cout << "RMSE after: " << rmse_after / y_gt.size() << std::endl;
 
     // Plotting
+    std::vector<double> landmark_obs_global_frame(landmark_obs.size());
+    for (int ii = 0; ii < landmark_obs.size(); ii++)
+        landmark_obs_global_frame.at(ii) = landmark_obs.at(ii) + y_gt.at(ii);
     matplot::hold(matplot::on);
     std::vector<double> x_axis(y_gt.size(), 0.0);
     matplot::plot(y_gt, x_axis, "o")->marker_size(MARKER_SIZE).line_width(LINE_WIDTH).display_name("ground truth");
     matplot::plot(y_odom, x_axis, "s")->marker_size(MARKER_SIZE).line_width(LINE_WIDTH).display_name("dead-reckon");
-    matplot::plot(finalPoses, x_axis, "x")->marker_size(MARKER_SIZE).line_width(LINE_WIDTH).display_name("estimate");
+    matplot::plot(finalPoses, x_axis, "x")->marker_size(MARKER_SIZE).marker_face(true).line_width(LINE_WIDTH).display_name("g2o estimate");
+    matplot::plot(landmark_obs_global_frame, x_axis, "d")->marker_size(MARKER_SIZE).line_width(LINE_WIDTH).display_name("landmark obs.");
     matplot::legend()->font_size(MARKER_SIZE);
     matplot::grid(matplot::on);
     matplot::show();
 
     return 0;
 }
-
-// #include <opencv4/opencv2/core/core.hpp>
-// #include <iostream>
-// #include <matplot/matplot.h>
-
-// int main()
-// {
-//     static cv::RNG rand_gen; // random number generator
-//     constexpr double W_SIGMA = 0.1;
-
-//     matplot::hold(matplot::on);
-//     std::vector<double> x_axis(100, 0.0);
-//     std::vector<double> y_axis(100, 0.0);
-
-//     for (int i = 0; i < 100; i++)
-//     {
-//         y_axis.at(i) = 0.1 * rand_gen.gaussian(W_SIGMA * W_SIGMA);
-//     }
-//     matplot::plot(y_axis, x_axis, "o");
-//     matplot::grid(matplot::on);
-//     matplot::show();
-// }

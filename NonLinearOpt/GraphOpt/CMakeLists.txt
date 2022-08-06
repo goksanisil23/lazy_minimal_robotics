@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
-project(g2o-example)
+project(g2o-examples)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -48,15 +48,26 @@ include_directories(${G2O_INCLUDE_DIR})
 message(STATUS ${G2O_LIBS})
 
 #########################
-# add_executable(${CMAKE_PROJECT_NAME} g2o_curve_fitting.cpp)
-add_executable(${CMAKE_PROJECT_NAME} g2o_1d.cpp)
-target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC
+add_executable(g2o_curve_fitting g2o_curve_fitting.cpp)
+add_executable(g2o_1d_robot g2o_1d_robot.cpp)
+
+
+target_link_libraries(g2o_curve_fitting PUBLIC
+    ${OpenCV_LIBS}
+    ${G2O_LIBS}
+    matplot
+    glog
+)
+target_link_libraries(g2o_1d_robot PUBLIC
     ${OpenCV_LIBS}
     ${G2O_LIBS}
     matplot
     glog
 )
 
-target_link_directories(${CMAKE_PROJECT_NAME} PUBLIC
+target_link_directories(g2o_curve_fitting PUBLIC
+	${OpenCV_LIBRARY_DIRS}
+)
+target_link_directories(g2o_1d_robot PUBLIC
 	${OpenCV_LIBRARY_DIRS}
 )

@@ -17,9 +17,9 @@ Edges are often associated to the error terms, since the error is defined as the
 
 Note that graphs ultimately encode an objective function, which is solved through repeated linearization via known non-linear optimization routines (Gauss-Newton, Levenberg-Marquardt). 
 
-g2o is 1 example of a graph optimization back-end. It exploits the sparse connectivity of the graphs to solve large sparse linear systems.
+g2o is one example of a graph optimization back-end. It exploits the sparse connectivity of the graphs to solve large sparse linear systems.
 
-## Simple Example
+## Unary Edge Example
 Although graph formulation makes more sense when there is locality in the optimization problem, for the sake of simplicity and to show the generalizability of graph formulation, we solve the curve fitting problem with g2o in this example: 
 
 `y = exp(mx+c)`
@@ -92,3 +92,51 @@ g2o_optimizer.optimize(N_ITER);
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/GraphOpt/resources/g2o_curve_fit.png" width=50% height=50%>
 
+## Binary Edge Example
+A more intuitive interpretation of an edge is when it indeed connects 2 vertices. In this example, we have a robot that is moving along a 1-dimensional line. Each discrete step of the robot is 1.0m. However, the noisy odometry measurements (wheel encoder, IMU, etc.) of the robot causes it to measure it's displacement with a Gaussian noise. Furthermore, at each pose the robot can also measure it's distance to a landmark that is half-way on this 1-D line, again with some Gaussian measurement noise. 
+
+Through graph optimization, we would like to minimize the **maximum likelihood** of the robot after all these noisy measurements.
+
+
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/GraphOpt/resources/binary_edge.png" width=50% height=50%>
+
+We create 2 types of vertices here: a landmark vertex and a robot pose vertex. In order to form a residual, we need:
+- a measurement
+- a belief with the current estimates of the system
+
+Here the measurement is the noisy distance measurements from the current robot pose to the landmark. And the belief is the difference between the current landmark position estimate and the current robot pose estimate.
+
+Within the graph, the difference between the belief and the measurements are jointly minimized with each added edge.
+
+```c++
+class Vertex1DPose : public g2o::BaseVertex<1, double>
+{
+public:
+    double project(const double &landmarkBelief)
+    {
+        // distance from landmark to robot (which is also what sensor measures)
+        // here _estimate is the robot pose
+        return landmarkBelief - _estimate;
+    }
+    // ...
+};
+
+// Error model template parameters: observation dimension, observation type, connecting vertex type(s)
+class OdometryEdgeProjection
+    : public g2o::BaseBinaryEdge<1, double, Vertex1DPose, Vertex1DLandmark>
+{
+public:
+    OdometryEdgeProjection() {}
+
+    virtual void computeError() override
+    {
+        auto v0 = static_cast<Vertex1DPose *>(_vertices[0]);
+        auto v1 = static_cast<Vertex1DLandmark *>(_vertices[1]);
+        auto projectedLandmark = v0->project(v1->estimate());
+        _error[0] = projectedLandmark - _measurement;
+    }
+    // ...
+};
+```
+
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/GraphOpt/resources/1d_g2o.png" width=50% height=50%>
