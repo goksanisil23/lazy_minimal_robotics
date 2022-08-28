@@ -25,3 +25,14 @@ Offline
  - transform 3d world landmark to image plane :
     -world -> 3D-camera frame 
     - 3D-Camera frame -> image plane  (perspective proj)
+
+
+<!-- Washington dataset: -->
+camera_idx, unique_3d_pt_idx, current_cam_pix_x, current_cam_pix_y
+...
+num_observation times repeated
+
+9 camera parameters repeated for each camera index
+[R(3),t(3),f,k1,k2]
+
+unique_3d_world_points, repeated for number of unique 3d points

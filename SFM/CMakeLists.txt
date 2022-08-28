@@ -48,6 +48,11 @@ ${G2O_TYPES_SLAM3D}
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../External/matplotplusplus ${CMAKE_CURRENT_BINARY_DIR}/matplotplusplus)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../External/cnpy ${CMAKE_CURRENT_BINARY_DIR}/cnpy)
 
+# Matplotlibcpp
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 COMPONENTS NumPy)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../External/Matplotlib)
+
 # Include dirs valid for all targets
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIR})
@@ -56,6 +61,7 @@ message(STATUS ${G2O_LIBS})
 
 #########################
 add_executable(${CMAKE_PROJECT_NAME} main.cpp)
+# add_executable(${CMAKE_PROJECT_NAME} o3d_odom.cpp)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC
     ${OpenCV_LIBS}
@@ -64,6 +70,9 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC
     glog
     cnpy
     Open3D::Open3D
+    Python3::Python
+    Python3::Module
+    Python3::NumPy    
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC 

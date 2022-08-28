@@ -8,27 +8,35 @@
 #include "ImageHandler.hpp"
 #include "Tracker.hpp"
 
-int main() {
-  NumpyImageHandler imgHandler(
-      "/home/goksan/Downloads/depthai-experiments/gen2-pointcloud/"
-      "rgbd-pointcloud/imgs",
-      "/home/goksan/Downloads/depthai-experiments/gen2-pointcloud/"
-      "rgbd-pointcloud/imgs");
+// const std::string IMAGES_DIR("/home/goksan/Downloads/depthai-experiments/gen2-pointcloud/rgbd-pointcloud/imgs3");
+const std::string IMAGES_DIR_RGB("../resources/data/imgs/rgb");
+const std::string IMAGES_DIR_DEPTH("../resources/data/imgs/depth");
 
-  Tracker tracker;
+int main()
+{
+    // sfm::NumpyImageHandler imgHandler(IMAGES_DIR_RGB, IMAGES_DIR_DEPTH);
+    sfm::CarlaImageHandler imgHandler(IMAGES_DIR_DEPTH, IMAGES_DIR_RGB);
 
-  cv::Mat depthImg, rgbImg;
-  while (
-      imgHandler.getNextImageWithDepth<uint8_t, uint16_t>(rgbImg, depthImg)) {
-    // cv::imshow("depth", depthImg);
-    // cv::waitKey(100);
-    // cv::imshow("rgb", rgbImg);
-    // cv::waitKey(100);
+    sfm::Tracker tracker;
 
-    std::cout << imgHandler.isCurrentDepthValid() << " ";
+    cv::Mat depthImg, rgbImg;
+    int img_ctr = 0;
+    int img_step = 1;
+    while (imgHandler.getNextImageWithDepth(rgbImg, depthImg))
+    // imgHandler.getNextImageWithDepth<uint8_t, uint16_t>(rgbImg, depthImg))
+    {
+        if (imgHandler.isCurrentDepthValid())
+        {
+            // cv::imshow("depth", depthImg);
+            // cv::waitKey(100);
+            // cv::imshow("rgb", rgbImg);
+            // cv::waitKey(100);
+            // tracker.projectImageTo3D(rgbImg, depthImg);
+            tracker.stepPnp(rgbImg, depthImg);
+            img_ctr = (img_ctr + 1);
+            std::cout << "img: " << img_ctr << std::endl;
+        }
+    }
 
-    // tracker.projectImageTo3D(rgbImg, depthImg);
-  }
-
-  return 0;
+    return 0;
 }
