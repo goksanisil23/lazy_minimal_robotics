@@ -11,3 +11,13 @@
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/src/Core/Matrix.h>
+
+// Need to associate unique landmarks to observations
+void findGlobalMatches()
+{
+}
+
+int main()
+{
+    return 0;
+}

@@ -20,8 +20,7 @@ Offline
  - observations: 2D pixel coordinates. Many observations. Each observation contains a camera_pose idx and 3D world point idx
  - vertices: (3D camera poses+camera intrinsics), (3D landmark poses)
  - edges: 2D feature measurement taken from a specific camera pose of a specific 3D landmark (connecting these 2 vertices)
- NOTE: 3D landmark poses are in world coordinates
- therefore reprojectection error calculation needs to:
+ NOTE: 3D landmark poses are in world coordinates, therefore reprojectection error calculation needs to:
  - transform 3d world landmark to image plane :
     -world -> 3D-camera frame 
     - 3D-Camera frame -> image plane  (perspective proj)
@@ -30,9 +29,18 @@ Offline
 <!-- Washington dataset: -->
 camera_idx, unique_3d_pt_idx, current_cam_pix_x, current_cam_pix_y
 ...
-num_observation times repeated
+repeated num_observation times
 
-9 camera parameters repeated for each camera index
+9 camera parameters
 [R(3),t(3),f,k1,k2]
+....
+repeated for each camera index
 
-unique_3d_world_points, repeated for number of unique 3d points
+unique_3d_world_points 
+[x,y,z coordinates] 
+...
+repeated for number of unique 3d points
+
+
+## in the representation above, the 2D feature matches are actually represented as 3d point indices, 
+## since going from 2D->3D is just a matter of perspective projection

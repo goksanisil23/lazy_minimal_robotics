@@ -18,6 +18,9 @@ namespace sfm
     constexpr float LOWE_MATCH_RATIO = 0.5;
     constexpr double MIN_MEAN_PIXEL_DISTANCE = 5.0;
     constexpr int MIN_MATCHES = 20;
+    constexpr int NUM_PNP_ITERATIONS = 100;
+    constexpr float PNP_REPROJECTION_ERR_THRES = 4.0F;
+    constexpr double PNP_CONFIDENCE = 0.99;
 
     // Feature tracking parameters
     constexpr int32_t MAX_CORNERS = 3000;
@@ -26,6 +29,8 @@ namespace sfm
     constexpr int32_t MIN_TRACKED_PTS = 100;
     constexpr int32_t KLT_PYRAMIDS = 3;
 
+    const std::string PCD_PATH_PREFIX = "../resources/data/pcds/after_viso/pointcloud_";
+
     struct Landmark
     {
         uint32_t idx;
@@ -33,6 +38,17 @@ namespace sfm
         std::vector<cv::Point2d> pixel_coords;
         Eigen::Vector3d translation; // w.r.t initial camera
         Eigen::Matrix3d rotation;    // w.r.t initial camera
+    };
+
+    struct MatchedFeatureCoords
+    {
+        MatchedFeatureCoords(const float &xk_minus, const float &yk_minus, const float &xk, const float &yk)
+            : x_k_minus{xk_minus}, y_k_minus{yk_minus}, x_k{xk}, y_k{yk} {}
+
+        // x,y pixel coordinates of the matched feature at frame k-1
+        float x_k_minus, y_k_minus;
+        // x,y pixel coordinate of the matched feature at frame k
+        float x_k, y_k;
     };
 
     class Tracker
@@ -88,6 +104,7 @@ namespace sfm
             // vis.GetRenderOption().show_coordinate_frame_ = true;
 
             matplotlibcpp::figure_size(600, 400);
+            data_for_ba_txt_.open("data_for_ba.txt");
         }
 
         void inline transformPoint(const Eigen::Matrix3d &rot, const Eigen::Vector3d &trans, Eigen::Vector3d &pt)
@@ -134,12 +151,13 @@ namespace sfm
             o3d_cloud = std::make_shared<open3d::geometry::PointCloud>(o3d_points);
             o3d_cloud->points_ = o3d_points;
             o3d_cloud->colors_ = o3d_colors;
-            open3d::io::WritePointCloud("../resources/data/pcds/after_viso/pointcloud_" + std::to_string(idx) + ".pcd", *o3d_cloud);
+            open3d::io::WritePointCloud(PCD_PATH_PREFIX + std::to_string(idx) + ".pcd", *o3d_cloud);
             idx++;
         }
 
         void stepPnp(cv::Mat &rgb_image, cv::Mat &depth_image)
         {
+            static int imgIdx = 0;
             // 1) Extract features & descriptors
             cv::Mat img_gray;
             cv::cvtColor(rgb_image, img_gray, cv::COLOR_BGR2GRAY);
@@ -147,6 +165,7 @@ namespace sfm
             std::vector<cv::Point2f> good_keypoints, good_prev_keypoints;
             std::vector<cv::Point3d> model_points;
             std::vector<cv::Point2d> image_points;
+            std::vector<MatchedFeatureCoords> matched_feature_coords;
             cv::Mat descriptors, good_descriptors; // (N_desriptor_size x N_keypoints_size)
             orb_->detectAndCompute(img_gray, cv::Mat(), keypoints, descriptors);
             descriptors.convertTo(descriptors, CV_32F);
@@ -175,19 +194,21 @@ namespace sfm
 
                         // Transform pixel coordinates to 3D camera coordinates using pinhole camera model.
                         // 3D-camera points specified in (k-1), their matches specified in (k) in pixel coordinates
-                        double depth = prev_depth_img_.at<double>(
-                            good_prev_keypoints.back().y, good_prev_keypoints.back().x);
-                        //   Its possible that stereo depth has not returned a depth value for
-                        //   this matched pixel
+                        double depth = prev_depth_img_.at<double>(good_prev_keypoints.back().y,
+                                                                  good_prev_keypoints.back().x);
                         if ((depth > 0) && (depth < DEPTH_THRESHOLD))
                         {
                             double x_world = (good_prev_keypoints.back().x - _cX) * depth / _fX;
                             double y_world = (good_prev_keypoints.back().y - _cY) * depth / _fY;
                             cv::Point3d world_pt(x_world, y_world, depth);
-                            model_points.push_back(world_pt); // 3d point at (k-1)
-                            image_points.push_back(cv::Point2d(
-                                good_keypoints.back().x,
-                                good_keypoints.back().y)); // corresponding image point at (k)
+                            // 3d point at (k-1)
+                            model_points.push_back(world_pt);
+                            // corresponding image point at (k)
+                            image_points.push_back(cv::Point2d(good_keypoints.back().x, good_keypoints.back().y));
+
+                            auto mf_coords = MatchedFeatureCoords(good_prev_keypoints.back().x, good_prev_keypoints.back().y,
+                                                                  good_keypoints.back().x, good_keypoints.back().y);
+                            matched_feature_coords.push_back(mf_coords);
                         }
                     }
                 }
@@ -212,34 +233,33 @@ namespace sfm
                     cv::Mat R_rod;
                     // Reprojection error parameter can really make a difference between getting good/bad results.
                     // Default value of 8.0 was giving a jumpy pose yet 4.0 works fine
+                    std::vector<int> inlier_idxs;
                     cv::solvePnPRansac(model_points, image_points, K_, cv::Mat::zeros(4, 1, cv::DataType<double>::type),
-                                       R_rod, t_current, false, 100, 4.0F);
+                                       R_rod, t_current, false,
+                                       NUM_PNP_ITERATIONS, PNP_REPROJECTION_ERR_THRES, PNP_CONFIDENCE,
+                                       inlier_idxs);
                     cv::Rodrigues(R_rod, R_current);
+                    std::cout << "all: " << image_points.size() << " inliers: " << inlier_idxs.size() << std::endl;
 
                     t_total = t_total + R_total * t_current;
                     R_total = R_current * R_total;
-
-                    std::cout << "t_current:\n"
-                              << t_current << std::endl;
-                    std::cout << "R_current:\n"
-                              << R_current << std::endl;
-                    std::cout << "t_total:\n"
-                              << t_total << std::endl;
 
                     // Project to 3d and translate to world coordinates
                     Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
                         eigenR(R_total.ptr<double>(), R_total.rows, R_total.cols);
                     Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
                         eigenT(t_total.ptr<double>(), t_total.rows, t_total.cols);
-                    projectImageTo3D(rgb_image, depth_image, eigenR, eigenT);
+                    // projectImageTo3D(rgb_image, depth_image, eigenR, eigenT);
 
                     x_traj.push_back(t_total.at<double>(0));
                     y_traj.push_back(t_total.at<double>(1));
-                    z_traj.push_back(-t_total.at<double>(2));
+                    z_traj.push_back(t_total.at<double>(2));
+
+                    saveForBA(imgIdx, matched_feature_coords, inlier_idxs, model_points);
 
                     // // Visualize
                     matplotlibcpp::clf();
-                    matplotlibcpp::named_plot("viso", x_traj, z_traj, "-o");
+                    matplotlibcpp::named_plot("viso", z_traj, x_traj, "-o");
                     matplotlibcpp::grid(true);
                     matplotlibcpp::legend();
                     matplotlibcpp::pause(0.0001);
@@ -254,10 +274,28 @@ namespace sfm
             }
 
             // Update previous frame
+            imgIdx++;
             prev_img_ = img_gray.clone();
             prev_depth_img_ = depth_image.clone();
             prev_keypoints_ = std::move(keypoints);
             prev_descriptors_ = std::move(descriptors);
+        }
+
+        void saveForBA(const int &imgIdx, const std::vector<MatchedFeatureCoords> &matched_feature_coords,
+                       const std::vector<int> &inlier_idxs, const std::vector<cv::Point3d> &model_points)
+        {
+            // matched_feature_coords & model_points are aligned in size and indices
+            for (auto idx : inlier_idxs)
+            {
+                data_for_ba_txt_ << imgIdx - 1
+                                 << " " << cvRound(matched_feature_coords.at(idx).x_k_minus)
+                                 << " " << cvRound(matched_feature_coords.at(idx).y_k_minus)
+                                 << " " << imgIdx
+                                 << " " << cvRound(matched_feature_coords.at(idx).x_k)
+                                 << " " << cvRound(matched_feature_coords.at(idx).y_k_minus)
+                                 << " " << model_points.at(idx).x << " " << model_points.at(idx).y << " " << model_points.at(idx).z
+                                 << std::endl;
+            }
         }
 
         double calculateMeanPixelDist(const cv::Point2f &pt1,
@@ -381,6 +419,11 @@ namespace sfm
             prev_depth_img_ = depth_image.clone();
         }
 
+        ~Tracker()
+        {
+            data_for_ba_txt_.close();
+        }
+
     private:
         // camera intrinsics
         double _cX, _cY, _fX, _fY;
@@ -407,5 +450,6 @@ namespace sfm
         cv::Mat R_total, t_total;
 
         std::vector<float> x_traj, y_traj, z_traj;
+        std::ofstream data_for_ba_txt_;
     };
 } // namespace sfm
