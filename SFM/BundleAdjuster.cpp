@@ -43,6 +43,7 @@ void linkOrInsertObservation(std::vector<Landmark> &landmarks, const ImageAndKey
                 {
                     landmark.imgsAndKps.push_back(ikp2);
                     foundExisting = true;
+                    // goto endloop;
                 }
             }
         }
@@ -64,6 +65,9 @@ void linkOrInsertObservation(std::vector<Landmark> &landmarks, const ImageAndKey
         lm.location = location3d;
         landmarks.push_back(lm);
     }
+
+    // endloop:
+    return;
 }
 
 void getUniqueLandmarks(const std::vector<Landmark> &landmarks, std::vector<Landmark> &uniqueLandmarks)
@@ -79,7 +83,7 @@ void getUniqueLandmarks(const std::vector<Landmark> &landmarks, std::vector<Land
                 for (int jj = ii + 1; jj < landmark.imgsAndKps.size(); jj++)
                 {
                     auto trgt = landmark.imgsAndKps.at(jj);
-                    isIdentical = isIdentical || ((src.xCoord == trgt.xCoord) && (src.yCoord == trgt.yCoord));
+                    isIdentical = isIdentical || ((src.xCoord == trgt.xCoord) && (src.yCoord == trgt.yCoord)) || (src.camIdx == trgt.camIdx);
                 }
             }
             if (!isIdentical)
@@ -130,6 +134,8 @@ int main()
         }
         lm_ctr++;
     }
+
+    // TODO: Draw the matches found in unique_landmarks as a sanity check to see if they indeed match
 
     return 0;
 }

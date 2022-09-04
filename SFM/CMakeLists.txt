@@ -63,7 +63,6 @@ message(STATUS ${G2O_LIBS})
 add_executable(${CMAKE_PROJECT_NAME} main.cpp)
 # add_executable(${CMAKE_PROJECT_NAME} o3d_odom.cpp)
 add_executable(bundle_adjuster BundleAdjuster.cpp)
-add_executable(test test.cpp)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC
     ${OpenCV_LIBS}
@@ -75,10 +74,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC
     Python3::Python
     Python3::Module
     Python3::NumPy    
-)
-
-target_include_directories(test PUBLIC
-${EIGEN3_INCLUDE_DIR}
 )
 
 target_link_libraries(bundle_adjuster PUBLIC
