@@ -29,7 +29,8 @@ namespace sfm
     constexpr int32_t MIN_TRACKED_PTS = 100;
     constexpr int32_t KLT_PYRAMIDS = 3;
 
-    const std::string PCD_PATH_PREFIX = "../resources/data/pcds/after_viso/pointcloud_";
+    const std::string RGB_PCD_PATH_PREFIX = "../resources/data/pcds/after_viso/rgb/rgb_cloud_";
+    const std::string KP_PCD_PATH_PREFIX = "../resources/data/pcds/after_viso/kp/keypoint_cloud_";
 
     struct Landmark
     {
@@ -95,6 +96,8 @@ namespace sfm
 
             R_total = cv::Mat::eye(3, 3, CV_64F);
             t_total = cv::Mat::zeros(3, 1, CV_64F);
+            R_prev = cv::Mat::eye(3, 3, CV_64F);
+            t_prev = cv::Mat::zeros(3, 1, CV_64F);
 
             // Initialize pointcloud visualizer
             // setup visualization
@@ -104,7 +107,11 @@ namespace sfm
             // vis.GetRenderOption().show_coordinate_frame_ = true;
 
             matplotlibcpp::figure_size(600, 400);
-            data_for_ba_txt_.open("data_for_ba.txt");
+            data_for_ba_txt_.open("../resources/data_for_ba.txt");
+            data_for_ba_txt_ << "image_k_minus feature_k_minus_x_coord feature_k_minus_y_coord "
+                                "image_k feature_k_x_coord feature_k_y_coord "
+                                "3d_world_pt_x 3d_world_pt_y 3d_world_pt_z"
+                             << std::endl;
         }
 
         void inline transformPoint(const Eigen::Matrix3d &rot, const Eigen::Vector3d &trans, Eigen::Vector3d &pt)
@@ -118,11 +125,31 @@ namespace sfm
             pt(2) = rot(2, 0) * t1 + rot(2, 1) * t2 + rot(2, 2) * t3 + trans(2);
         }
 
-        void projectImageTo3D(const cv::Mat &rgbImage, const cv::Mat &depthImage,
+        void transformPointsTo3dLandmarks(const int &imgIdx,
+                                          const std::vector<cv::Point3d> &model_points,
+                                          const Eigen::Matrix3d &rot, const Eigen::Vector3d &trans,
+                                          std::vector<Eigen::Vector3d> &landmark_points)
+        {
+            for (auto pt_in_cam_frame : model_points)
+            {
+                Eigen::Vector3d pt_in_world_frame = Eigen::Vector3d(-pt_in_cam_frame.x,
+                                                                    -pt_in_cam_frame.y,
+                                                                    pt_in_cam_frame.z);
+                transformPoint(rot, trans, pt_in_world_frame);
+                landmark_points.push_back(pt_in_world_frame);
+            }
+            // Write to file
+            o3d_cloud = std::make_shared<open3d::geometry::PointCloud>(landmark_points);
+            o3d_cloud->points_ = landmark_points;
+            // o3d_cloud->colors_ = o3d_colors;
+            open3d::io::WritePointCloud(KP_PCD_PATH_PREFIX + std::to_string(imgIdx) + ".pcd", *o3d_cloud);
+        }
+
+        void projectImageTo3d(const int &imgIdx,
+                              const cv::Mat &rgbImage, const cv::Mat &depthImage,
                               const Eigen::Matrix3d &rot = Eigen::Matrix3d::Identity(),
                               const Eigen::Vector3d &trans = Eigen::Vector3d::Zero())
         {
-            static int idx = 0;
             std::vector<Eigen::Vector3d> o3d_points;
             std::vector<Eigen::Vector3d> o3d_colors;
 
@@ -151,8 +178,7 @@ namespace sfm
             o3d_cloud = std::make_shared<open3d::geometry::PointCloud>(o3d_points);
             o3d_cloud->points_ = o3d_points;
             o3d_cloud->colors_ = o3d_colors;
-            open3d::io::WritePointCloud(PCD_PATH_PREFIX + std::to_string(idx) + ".pcd", *o3d_cloud);
-            idx++;
+            open3d::io::WritePointCloud(RGB_PCD_PATH_PREFIX + std::to_string(imgIdx) + ".pcd", *o3d_cloud);
         }
 
         void stepPnp(cv::Mat &rgb_image, cv::Mat &depth_image)
@@ -241,21 +267,30 @@ namespace sfm
                     cv::Rodrigues(R_rod, R_current);
                     std::cout << "all: " << image_points.size() << " inliers: " << inlier_idxs.size() << std::endl;
 
-                    t_total = t_total + R_total * t_current;
-                    R_total = R_current * R_total;
+                    t_prev = t_total;
+                    R_prev = R_total;
+                    t_total = t_prev + R_prev * t_current;
+                    R_total = R_current * R_prev;
 
                     // Project to 3d and translate to world coordinates
                     Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
                         eigenR(R_total.ptr<double>(), R_total.rows, R_total.cols);
                     Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
                         eigenT(t_total.ptr<double>(), t_total.rows, t_total.cols);
-                    // projectImageTo3D(rgb_image, depth_image, eigenR, eigenT);
+                    Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
+                        eigenR_prev(R_prev.ptr<double>(), R_prev.rows, R_prev.cols);
+                    Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
+                        eigenT_prev(t_prev.ptr<double>(), t_prev.rows, t_prev.cols);
+                    projectImageTo3d(imgIdx, rgb_image, depth_image, eigenR, eigenT);
 
                     x_traj.push_back(t_total.at<double>(0));
                     y_traj.push_back(t_total.at<double>(1));
                     z_traj.push_back(t_total.at<double>(2));
 
-                    saveForBA(imgIdx, matched_feature_coords, inlier_idxs, model_points);
+                    std::vector<Eigen::Vector3d> landmark_points;
+                    // use transform of idx k-1 since the 3d model points (model_points) belong to k-1
+                    transformPointsTo3dLandmarks(imgIdx - 1, model_points, eigenR_prev, eigenT_prev, landmark_points);
+                    saveForBA(imgIdx, matched_feature_coords, inlier_idxs, landmark_points);
 
                     // // Visualize
                     matplotlibcpp::clf();
@@ -282,18 +317,19 @@ namespace sfm
         }
 
         void saveForBA(const int &imgIdx, const std::vector<MatchedFeatureCoords> &matched_feature_coords,
-                       const std::vector<int> &inlier_idxs, const std::vector<cv::Point3d> &model_points)
+                       const std::vector<int> &inlier_idxs, const std::vector<Eigen::Vector3d> &landmark_points)
         {
-            // matched_feature_coords & model_points are aligned in size and indices
+            // matched_feature_coords & landmark_points are aligned in size and indices
             for (auto idx : inlier_idxs)
             {
+                // Round the pixel coordinates in order to allow matching later on
                 data_for_ba_txt_ << imgIdx - 1
-                                 << " " << cvRound(matched_feature_coords.at(idx).x_k_minus)
-                                 << " " << cvRound(matched_feature_coords.at(idx).y_k_minus)
+                                 << " " << (matched_feature_coords.at(idx).x_k_minus)
+                                 << " " << (matched_feature_coords.at(idx).y_k_minus)
                                  << " " << imgIdx
-                                 << " " << cvRound(matched_feature_coords.at(idx).x_k)
-                                 << " " << cvRound(matched_feature_coords.at(idx).y_k_minus)
-                                 << " " << model_points.at(idx).x << " " << model_points.at(idx).y << " " << model_points.at(idx).z
+                                 << " " << (matched_feature_coords.at(idx).x_k)
+                                 << " " << (matched_feature_coords.at(idx).y_k_minus)
+                                 << " " << landmark_points.at(idx)(0) << " " << landmark_points.at(idx)(1) << " " << landmark_points.at(idx)(2)
                                  << std::endl;
             }
         }
@@ -448,6 +484,7 @@ namespace sfm
 
         cv::Mat R_current, t_current;
         cv::Mat R_total, t_total;
+        cv::Mat R_prev, t_prev;
 
         std::vector<float> x_traj, y_traj, z_traj;
         std::ofstream data_for_ba_txt_;

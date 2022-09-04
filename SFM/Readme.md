@@ -36,7 +36,7 @@ repeated num_observation times
 ....
 repeated for each camera index
 
-unique_3d_world_points 
+unique_3d_world_points (in world coordinates)
 [x,y,z coordinates] 
 ...
 repeated for number of unique 3d points
