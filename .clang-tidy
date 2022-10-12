@@ -1,0 +1,151 @@
+---
+Checks:          '-*,
+                  clang-analyzer-*,
+                  clang-diagnostic-*,
+                  bugprone-copy-constructor-init,
+                  bugprone-forward-declaration-namespace,
+                  bugprone-integer-division,
+                  bugprone-move-forwarding-reference,
+                  bugprone-use-after-move,
+                  cert-dcl50-cpp,
+                  cert-dcl58-cpp,
+                  cert-dcl59-cpp,
+                  cert-err52-cpp,
+                  cert-flp30-c,
+                  cert-msc50-cpp,
+                  cppcoreguidelines-interfaces-global-init,
+                  cppcoreguidelines-no-malloc,
+                  cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+                  cppcoreguidelines-pro-type-const-cast,
+                  cppcoreguidelines-pro-type-member-init,
+                  cppcoreguidelines-pro-type-reinterpret-cast,
+                  cppcoreguidelines-pro-type-static-cast-downcast,
+                  cppcoreguidelines-pro-type-union-access,
+                  cppcoreguidelines-slicing,
+                  cppcoreguidelines-special-member-functions,
+                  google-explicit-constructor,
+                  llvm-namespace-comment,
+                  misc-incorrect-roundings,
+                  misc-static-assert,
+                  misc-new-delete-overloads,
+                  misc-non-copyable-objects,
+                  misc-unconventional-assign-operator,
+                  misc-undelegated-constructor,
+                  misc-macro-parentheses,
+                  misc-misplaced-widening-cast,
+                  misc-redundant-expression,
+                  misc-suspicious-missing-comma,
+                  misc-suspicious-semicolon,
+                  modernize-use-equals-default,
+                  modernize-use-nullptr,
+                  modernize-use-override,
+                  performance-move-constructor-init,
+                  performance-move-const-arg,
+                  readability-braces-around-statements,
+                  readability-function-size,
+                  readability-named-parameter,
+                  readability-deleted-default,
+                  readability-implicit-bool-conversion,
+                  readability-inconsistent-declaration-parameter-name,
+                  readability-non-const-parameter,
+                  readability-redundant-declaration,
+                  readability-redundant-member-init,
+                  readability-static-accessed-through-instance,
+                  hicpp-multiway-paths-covered,
+                  misc-scania-*,
+                  google-build-using-namespace,
+                  google-build-namespaces,
+                  bugprone-too-small-loop-variable'
+WarningsAsErrors: '*'
+HeaderFilterRegex: '.*'
+AnalyzeTemporaryDtors: false
+FormatStyle:     none
+User:            vagrant
+CheckOptions:
+  - key:             cert-dcl59-cpp.HeaderFileExtensions
+    value:           ',h,hh,hpp,hxx'
+  - key:             cppcoreguidelines-no-malloc.Allocations
+    value:           '::malloc;::calloc'
+  - key:             cppcoreguidelines-no-malloc.Deallocations
+    value:           '::free'
+  - key:             cppcoreguidelines-no-malloc.Reallocations
+    value:           '::realloc'
+  - key:             cppcoreguidelines-pro-type-member-init.IgnoreArrays
+    value:           '0'
+  - key:             cppcoreguidelines-special-member-functions.AllowMissingMoveFunctions
+    value:           '0'
+  - key:             cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
+    value:           '0'
+  - key:             google-readability-braces-around-statements.ShortStatementLines
+    value:           '1'
+  - key:             google-readability-function-size.StatementThreshold
+    value:           '800'
+  - key:             google-readability-namespace-comments.ShortNamespaceLines
+    value:           '10'
+  - key:             google-readability-namespace-comments.SpacesBeforeComments
+    value:           '2'
+  - key:             google-runtime-references.WhiteListTypes
+    value:           ''
+  - key:             hicpp-multiway-paths-covered.WarnOnMissingElse
+    value:           '1'
+  - key:             llvm-namespace-comment.ShortNamespaceLines
+    value:           '1'
+  - key:             llvm-namespace-comment.SpacesBeforeComments
+    value:           '1'
+  - key:             modernize-loop-convert.MaxCopySize
+    value:           '16'
+  - key:             modernize-loop-convert.MinConfidence
+    value:           reasonable
+  - key:             modernize-loop-convert.NamingStyle
+    value:           CamelCase
+  - key:             modernize-pass-by-value.IncludeStyle
+    value:           llvm
+  - key:             modernize-replace-auto-ptr.IncludeStyle
+    value:           llvm
+  - key:             modernize-use-equals-default.IgnoreMacros
+    value:           '1'
+  - key:             modernize-use-nullptr.NullMacros
+    value:           'NULL'
+  - key:             performance-move-const-arg.CheckTriviallyCopyableMove
+    value:           '1'
+  - key:             performance-move-constructor-init.IncludeStyle
+    value:           llvm
+  - key:             readability-braces-around-statements.ShortStatementLines
+    value:           '0'
+  - key:             readability-function-size.BranchThreshold
+    value:           '4294967295'
+  - key:             readability-function-size.LineThreshold
+    value:           '4294967295'
+  - key:             readability-function-size.NestingThreshold
+    value:           '4294967295'
+  - key:             readability-function-size.ParameterThreshold
+    value:           '4294967295'
+  - key:             readability-function-size.StatementThreshold
+    value:           '800'
+  - key:             readability-function-size.VariableThreshold
+    value:           '4294967295'
+  - key:             readability-implicit-bool-conversion.AllowIntegerConditions
+    value:           '0'
+  - key:             readability-implicit-bool-conversion.AllowPointerConditions
+    value:           '0'
+  - key:             readability-inconsistent-declaration-parameter-name.IgnoreMacros
+    value:           '1'
+  - key:             readability-inconsistent-declaration-parameter-name.Strict
+    value:           '0'
+  - key:             readability-static-accessed-through-instance.NameSpecifierNestingThreshold
+    value:           '3'
+...
+#### bugprone-copy-constructor-init // Not sure how useful this is
+#### bugprone-move-forwarding-reference // Not sure how useful this is
+#### bugprone-use-after-move // Not sure how useful this is
+#### google-runtime-references // Autosar opinion on this?
+#### misc-static-assert // Not sure how useful this is
+#### misc-new-delete-overloads // Not sure how useful this is
+#### misc-non-copyable-objects // Not sure how useful this is
+#### misc-unconventional-assign-operator // Not sure how useful this is
+#### misc-undelegated-constructor // Not sure how useful this is
+#### performance-move-constructor-init // Not sure how useful this is
+#### performance-move-const-arg // Not sure how useful this is
+#### readability-function-size // Add max line size
+#### readability-deleted-default // Not sure how useful this is
+#### readability-identifier-naming // Maybe not possible to follow naming convention completely. We need custom version.
