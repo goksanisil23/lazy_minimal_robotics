@@ -7,3 +7,9 @@
     - https://waymo.com/open/
     - https://www.nuscenes.org/
     - https://doc.bdd100k.com/download.html
+
+Stereo datasets:
+    - https://vision.middlebury.edu/stereo
+    - http://www.cvlibs.net/datasets/kitti/eval_stereo_flow.php
+    - https://roboimagedata.compute.dtu.dk/?page id=36
+    - https://www.eth3d.net
