@@ -43,6 +43,7 @@ For testing, a simulated camera from Carla and the stereo dataset from Middlebur
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/middlebury_motorcycle_left.png" width=30% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/middlebury_motorcycle_right.png" width=30% height=50%>
 
 #### Disparity with: Block matching, Semi-global block matching, Weighted Least Squares Filter applied to SGBM, Final Depth Map 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/motorcycle_result.png" width=50% height=70%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/motorcycle_result.png" width=60% height=70%>
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/motorcycle_stereo_3d.png" width=50% height=70%>
+#### 3D-reconstructed pointcloud from the depth map
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/motorcycle_stereo_3d.png" width=60% height=70%>
