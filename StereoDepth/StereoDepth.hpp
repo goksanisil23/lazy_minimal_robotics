@@ -140,6 +140,7 @@ class StereoDepth
         static int disparitySmoothnessP2   = disparitySmoothnessP1 * 4;
         static int maxAllowedDispDiffCheck = 1;
         static int uniquenessRatio         = 10;
+        static int prefilterCap            = 63;
 
         auto leftMatcherSGBM = cv::StereoSGBM::create(minDisparity,
                                                       numDisparities,
@@ -147,7 +148,7 @@ class StereoDepth
                                                       disparitySmoothnessP1,
                                                       disparitySmoothnessP2,
                                                       maxAllowedDispDiffCheck,
-                                                      0,
+                                                      prefilterCap,
                                                       uniquenessRatio,
                                                       0,
                                                       0,
@@ -184,6 +185,14 @@ class StereoDepth
             cv::Mat filtDispVis;
             cv::ximgproc::getDisparityVis(filteredDisparity_S16, filtDispVis, DISP_VIS_SCALE);
             cv::imshow("Filtered", filtDispVis);
+
+            // Show the confidence map
+            cv::Mat confidenceMap;
+            confidenceMap = wlsFilter->getConfidenceMap();
+            double minConf, maxConf;
+            cv::minMaxLoc(confidenceMap, &minConf, &maxConf);
+            confidenceMap.convertTo(confidenceMap, CV_8UC1, 255 / (maxConf - minConf));
+            cv::imshow("confidenceMap", confidenceMap);
 
             return filteredDisparity_S16;
         }
