@@ -18,7 +18,9 @@ With the perspective projection equations above, we get 4 equations for the 3 un
     - is more prone to imperfections in feature matching between left and right cameras
 
 The benefit of having a horizontally (or vertically) and axis aligned baseline is that, in disparity computation, it reduces the area that we search for feature matches between the camera pairs to a horizontal strip.
+
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/find_match_disparity.png" width=30% height=50%>
+
 This is due to both `v_l` and `v_r` having the same perspective projection:  `v_l = v_r = f_y * Y / Z + o_y`
 In order to avoid the pixel on the left camera being matched to a pixel on the right camera's horizontal strip, a block comparison is applied instead.
 
@@ -33,3 +35,11 @@ Searching for feature correspondes between axis-aligned cameras is much simpler 
 In summary, there are 2 main problems to solve in stereo-depth estimation:
 1. Finding baseline, and camera intrinsics.
 2. Finding matching pixel coordinates `(u_l,v_l) & (u_r,v_r)` for the landmark. -> for computing disparity
+
+## Results
+For testing, a simulated camera from Carla and the stereo dataset from Middlebury is used.
+
+#### Original left & right pair
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/middlebury_motorcycle_left.png" width=30% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/middlebury_motorcycle_right.png" width=30% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/motorcycle_result.png" width=30% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/motorcycle_stereo_3d.png" width=30% height=50%>

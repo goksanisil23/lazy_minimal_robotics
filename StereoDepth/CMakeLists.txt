@@ -21,41 +21,30 @@ if(NOT Open3D_FOUND)
     message(FATAL_ERROR "Open3D not found, please use -DCMAKE_INSTALL_PREFIX=open3d_install_dir")
 endif()
 
-
 find_package(Eigen3 3.4)
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 find_package(Python3 COMPONENTS NumPy)
 
+add_executable(${CMAKE_PROJECT_NAME}_carla main_carla.cpp)
+add_executable(${CMAKE_PROJECT_NAME}_middlebury main_middlebury.cpp)
 
-add_executable(${CMAKE_PROJECT_NAME} main.cpp)
-
-add_executable(test test.cpp)
-target_include_directories(test PUBLIC 
-	${OpenCV_INCLUDE_DIRS}
-	${EIGEN3_INCLUDE_DIR}
-)
-target_link_libraries(test ${OpenCV_LIBS})
-target_link_directories(test PUBLIC
-	${OpenCV_LIBRARY_DIRS}
-)
-
-target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC 
-	${LIB_CARLA_PATH}/include
+include_directories(${LIB_CARLA_PATH}/include
 	${LIB_CARLA_PATH}/include/system
 	${OpenCV_INCLUDE_DIRS}
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${EIGEN3_INCLUDE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/../../External/Matplotlib
 )
 
-target_link_directories(${CMAKE_PROJECT_NAME} PUBLIC
+target_link_directories(${CMAKE_PROJECT_NAME}_carla PUBLIC
     ${LIB_CARLA_PATH}/lib
 	${OpenCV_LIBRARY_DIRS}
 )
+target_link_directories(${CMAKE_PROJECT_NAME}_middlebury PUBLIC
+	${OpenCV_LIBRARY_DIRS}
+)
 
-include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../External/Matplotlib)
-
-target_link_libraries(${CMAKE_PROJECT_NAME} 
+target_link_libraries(${CMAKE_PROJECT_NAME}_carla
 	carla_client
 	rpc
 	boost_filesystem
@@ -70,4 +59,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     Python3::Python
     Python3::Module
     Python3::NumPy	
+)
+target_link_libraries(${CMAKE_PROJECT_NAME}_middlebury 
+	${OpenCV_LIBS} 
+	Open3D::Open3D
 )

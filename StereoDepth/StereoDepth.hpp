@@ -10,6 +10,7 @@
 #include <opencv4/opencv2/core/eigen.hpp>
 #include <opencv4/opencv2/features2d.hpp>
 #include <opencv4/opencv2/opencv.hpp>
+#include <opencv4/opencv2/ximgproc/disparity_filter.hpp>
 
 #include "open3d/Open3D.h"
 
@@ -20,6 +21,7 @@ class StereoDepth
     typedef cv::Point3_<uint8_t> PixelDisparityU08;
     // typedef cv::Point<int16_t>   PixelDisparityS16Fixed;
     const float DEPTH_THRESHOLD = 999.0;
+    const float DISP_VIS_SCALE  = 2.0;
 
     // Constructor
     StereoDepth(cv::Mat intrinsics_K_left, cv::Mat intrinsics_K_right, Eigen::Matrix4f T_left_to_right)
@@ -48,7 +50,6 @@ class StereoDepth
                     float           z_world = depth;
                     Eigen::Vector3d pt_in_cam_frame(-x_world, -y_world, z_world);
 
-                    // o3d_points.at(jj + ii * rgbImageLeft.cols) = pt_in_cam_frame;
                     o3d_points.push_back(pt_in_cam_frame);
                     auto rgbColor = rgbImageLeft.at<cv::Vec3b>(ii, jj);
                     o3d_colors.push_back(Eigen::Vector3d(rgbColor[2], rgbColor[1], rgbColor[0]) / 255.0);
@@ -73,17 +74,21 @@ class StereoDepth
 
         cv::Mat depthMapF32(disparityMatS16Fixed.rows, disparityMatS16Fixed.cols, CV_32F, cv::Scalar::all(0));
 
+        static const float maxDisparity = static_cast<float>(disparityMatS16Fixed.cols);
         disparityMatS16Fixed.forEach<int16_t>(
             [&depthMapF32, baseline, this](int16_t &pixel, const int *position)
             {
                 float disparity = static_cast<float>(pixel) * fixedS16ToFloat;
-                if (disparity > 0)
+                if ((disparity > 1.0) && (disparity < maxDisparity))
+                {
                     depthMapF32.at<float>(position[0], position[1]) = baseline * f_x_left_ / disparity;
+                }
             });
 
         cv::Mat depth_U8;
         double  minVal, maxVal;
         cv::minMaxLoc(depthMapF32, &minVal, &maxVal);
+        std::cout << minVal << " " << maxVal << std::endl;
         depthMapF32.convertTo(depth_U8, CV_8UC1, 255 / (maxVal - minVal));
 
         cv::imshow("depth", depth_U8);
@@ -109,19 +114,15 @@ class StereoDepth
         cv::Mat disparityLeft_S16Fixed;
         leftMatcherBM->compute(leftImageGray, rightImageGray, disparityLeft_S16Fixed);
 
-        // Normalize for visualization
-        cv::Mat disparityLeft_U8;
-        double  minVal, maxVal;
-        cv::minMaxLoc(disparityLeft_S16Fixed, &minVal, &maxVal);
-        disparityLeft_S16Fixed.convertTo(disparityLeft_U8, CV_8UC1, 255 / (maxVal - minVal));
-
-        cv::imshow("BM", disparityLeft_U8);
-        // cv::waitKey(0);
+        // // Normalize for visualization
+        cv::Mat disparityLeftVis;
+        cv::ximgproc::getDisparityVis(disparityLeft_S16Fixed, disparityLeftVis, DISP_VIS_SCALE);
+        cv::imshow("BM", disparityLeftVis);
 
         return disparityLeft_S16Fixed;
     }
 
-    cv::Mat computeLeftDisparityMapSGBM(const cv::Mat &leftImage, const cv::Mat &rightImage)
+    cv::Mat computeLeftDisparityMapSGBM(const cv::Mat &leftImage, const cv::Mat &rightImage, bool enablePostFiltering)
     {
         cv::Mat leftImageGray, rightImageGray;
         cv::cvtColor(leftImage, leftImageGray, cv::COLOR_BGR2GRAY);
@@ -130,20 +131,24 @@ class StereoDepth
         // (max_disparity-min_disparity), must be divisible by 16
         // min_disparity is the offset from the x-position of the left pixel at which search begins
         // for camera setups that are inclined towards each other, min_disparity can be negative
-        int numDisparities = 6 * 16;
+        static int numDisparities = 6 * 16;
         // matching window size, must be odd.
-        int blockSize    = 11;
-        int minDisparity = 0;
-        int windowSize   = 6;
+        static int blockSize               = 11;
+        static int minDisparity            = 0;
+        static int windowSize              = 6;
+        static int disparitySmoothnessP1   = 8 * 3 * windowSize * windowSize;
+        static int disparitySmoothnessP2   = disparitySmoothnessP1 * 4;
+        static int maxAllowedDispDiffCheck = 1;
+        static int uniquenessRatio         = 10;
 
         auto leftMatcherSGBM = cv::StereoSGBM::create(minDisparity,
                                                       numDisparities,
                                                       blockSize,
-                                                      8 * 3 * windowSize * windowSize,
-                                                      32 * 3 * windowSize * windowSize,
-                                                      1,
+                                                      disparitySmoothnessP1,
+                                                      disparitySmoothnessP2,
+                                                      maxAllowedDispDiffCheck,
                                                       0,
-                                                      10,
+                                                      uniquenessRatio,
                                                       0,
                                                       0,
                                                       cv::StereoSGBM::MODE_SGBM_3WAY);
@@ -152,15 +157,40 @@ class StereoDepth
         leftMatcherSGBM->compute(leftImageGray, rightImageGray, disparityLeft_S16);
 
         // // Normalize for visualization
-        cv::Mat disparityLeft_U8;
-        double  minVal, maxVal;
-        cv::minMaxLoc(disparityLeft_S16, &minVal, &maxVal);
-        disparityLeft_S16.convertTo(disparityLeft_U8, CV_8UC1, 255 / (maxVal - minVal));
+        cv::Mat disparityLeftVis;
+        cv::ximgproc::getDisparityVis(disparityLeft_S16, disparityLeftVis, DISP_VIS_SCALE);
+        cv::imshow("SGBM", disparityLeftVis);
 
-        cv::imshow("SGBM", disparityLeft_U8);
-        // cv::waitKey(0);
+        // Create
+        if (enablePostFiltering)
+        {
+            auto wlsFilter = cv::ximgproc::createDisparityWLSFilter(leftMatcherSGBM);
+            // Create another matcher for right-to-left disparity computation
+            cv::Ptr<cv::StereoMatcher> rightMatcherSGBM = cv::ximgproc::createRightMatcher(leftMatcherSGBM);
+            cv::Mat                    disparityRight_S16;
+            rightMatcherSGBM->compute(rightImageGray, leftImageGray, disparityRight_S16);
+            static float wlsLambda = 8000.0;
+            static float wlsSigma  = 1.5;
+            wlsFilter->setLambda(wlsLambda);
+            wlsFilter->setSigmaColor(wlsSigma);
+            cv::Mat filteredDisparity_S16;
+            wlsFilter->filter(disparityLeft_S16,
+                              leftImageGray,
+                              filteredDisparity_S16,
+                              disparityRight_S16,
+                              cv::Rect(),
+                              rightImageGray);
 
-        return disparityLeft_S16;
+            cv::Mat filtDispVis;
+            cv::ximgproc::getDisparityVis(filteredDisparity_S16, filtDispVis, DISP_VIS_SCALE);
+            cv::imshow("Filtered", filtDispVis);
+
+            return filteredDisparity_S16;
+        }
+        else
+        {
+            return disparityLeft_S16;
+        }
     }
 
   private:
