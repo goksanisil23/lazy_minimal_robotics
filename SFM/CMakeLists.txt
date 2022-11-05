@@ -44,60 +44,65 @@ ${G2O_TYPES_SLAM2D}
 ${G2O_TYPES_SLAM3D}
 )
 
-# Matplot++
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../External/matplotplusplus ${CMAKE_CURRENT_BINARY_DIR}/matplotplusplus)
+# cnpy 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../External/cnpy ${CMAKE_CURRENT_BINARY_DIR}/cnpy)
 
+# Matplot++
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../External/matplotplusplus ${CMAKE_CURRENT_BINARY_DIR}/matplotplusplus)
+
 # Matplotlibcpp
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-find_package(Python3 COMPONENTS NumPy)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../External/Matplotlib)
+# find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+# find_package(Python3 COMPONENTS NumPy)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../External/Matplotlib)
 
 # Include dirs valid for all targets
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${G2O_INCLUDE_DIR})
+link_directories(${OpenCV_LIBRARY_DIRS})
 message(STATUS ${G2O_LIBS})
 
-#########################
-add_executable(${CMAKE_PROJECT_NAME} main.cpp)
-# add_executable(${CMAKE_PROJECT_NAME} o3d_odom.cpp)
-add_executable(bundle_adjuster BundleAdjuster.cpp)
+# find_package(BLAS)
+# message("------------------------------------")
+# message(${BLAS_INCLUDE_DIRS})
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC
+#########################
+add_executable(pose_estimator pose_estimator.cpp)
+add_executable(bundle_adjuster BundleAdjuster.cpp)
+add_executable(feature_matcher feature_matcher.cpp)
+
+target_link_libraries(pose_estimator PUBLIC
     ${OpenCV_LIBS}
     ${G2O_LIBS}
-    matplot
     glog
     cnpy
     Open3D::Open3D
-    Python3::Python
-    Python3::Module
-    Python3::NumPy    
+    matplot 
 )
-
+target_link_libraries(pose_estimator PUBLIC
+    ${OpenCV_LIBS} 
+)
 target_link_libraries(bundle_adjuster PUBLIC
     ${OpenCV_LIBS}
     ${G2O_LIBS}
-    matplot
     glog
     Open3D::Open3D
-    Python3::Python
-    Python3::Module
-    Python3::NumPy    
+    matplot  
+)
+target_link_libraries(feature_matcher PUBLIC
+    ${OpenCV_LIBS}
+    Open3D::Open3D
+    Open3D::Open3D
+    matplot      
 )
 
-target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC 
+target_include_directories(pose_estimator PUBLIC 
 ${CMAKE_CURRENT_SOURCE_DIR}/../External/cnpy
 ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_directories(${CMAKE_PROJECT_NAME} PUBLIC
-	${OpenCV_LIBRARY_DIRS}
-)
+target_include_directories(feature_matcher PUBLIC 
+${CMAKE_CURRENT_SOURCE_DIR}/../External/cnpy
+${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(bundle_adjuster PUBLIC 
 ${CMAKE_CURRENT_SOURCE_DIR})
-
-target_link_directories(bundle_adjuster PUBLIC
-	${OpenCV_LIBRARY_DIRS}
-)

@@ -2,7 +2,7 @@
 - Scale ambiguity is still there (if there's no known 3D landmark introduced somewhere in the chain)
 - Most clearly stated in the abstract of this paper: https://rpg.ifi.uzh.ch/docs/ICCV09_scaramuzza.pdf:
     - *In structure-from-motion with a single camera, the scene can be only recovered up to a scale. In order to compute the absolute scale, one needs to know the baseline of the camera motion or the dimension of at least one element in the scene.*
-- But the reconstruction is consistent within the chose world coordinates. However that construction would look exactly the same if everything in real 3D world had been upscaled by X.
+- But the reconstruction is consistent within the chose world coordinates. However that construction would look exactly the same if everything in real 3D world had been upscaled by K amount.
 
  - Many of the structure from motion datasets provide 3D landmarks, initial camera poses and matched image features already.
 
@@ -41,6 +41,6 @@ unique_3d_world_points (in world coordinates)
 ...
 repeated for number of unique 3d points
 
-
-## in the representation above, the 2D feature matches are actually represented as 3d point indices, 
+## note that pixel coordinates of matched features do not exist in the data above.
+## the 2D feature matches are actually represented as 3d point indices, 
 ## since going from 2D->3D is just a matter of perspective projection
