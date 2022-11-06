@@ -4,6 +4,3 @@
 [submodule "External/cnpy"]
 	path = External/cnpy
 	url = https://github.com/rogersce/cnpy.git
-[submodule "External/sophus"]
-	path = External/sophus
-	url = https://github.com/strasdat/Sophus.git
