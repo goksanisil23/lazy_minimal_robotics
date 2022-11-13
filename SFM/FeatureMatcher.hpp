@@ -15,7 +15,7 @@ using namespace std::chrono_literals;
 namespace sfm
 {
 
-constexpr double DEPTH_THRESHOLD = 9999.0;
+constexpr double DEPTH_THRESHOLD = 999.0;
 
 // Feature matching parameters
 constexpr int32_t MAX_ORB_FEAUTURES          = 3000;
@@ -40,6 +40,7 @@ const std::vector<std::pair<int, int>> windowLocations{std::make_pair<int, int>(
 
 const std::string RGB_PCD_PATH_PREFIX = "../resources/data/pcds/after_matching/rgb_cloud_";
 const std::string KP_PCD_PATH_PREFIX  = "../resources/data/pcds/after_matching/keypoint_cloud_";
+const std::string BA_DATA_PATH        = "../resources/data/data_for_ba.txt";
 
 class FeatureMatcher
 {
@@ -109,7 +110,9 @@ class FeatureMatcher
         orb_           = cv::ORB::create(MAX_ORB_FEAUTURES);
         flann_matcher_ = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
 
-        baDataOutStream_.open("../resources/data_for_ba.txt");
+        baDataOutStream_.open(BA_DATA_PATH);
+        // baDataOutStream_ << "num_cameras num_3d_landmarks num_observations" << std::endl;
+        // baDataOutStream_ << "0 0 0" << std::endl; // to be replaced
     }
 
     void AddRgbDepthPair(const cv::Mat &rgbImg, const cv::Mat &depthImg)
@@ -391,7 +394,7 @@ class FeatureMatcher
         PrintMatchedDescriptors();
         // ShowMatches();
 
-        // Handle empty landmark
+        // Initialize the landmarks vector with a landmark
         std::vector<DescriptorIndentifier> newLandmark{
             DescriptorIndentifier(0, globalMatchInfo_.at(0).at(1).begin()->first),
             DescriptorIndentifier(1, globalMatchInfo_.at(0).at(1).begin()->second)};
@@ -494,10 +497,6 @@ class FeatureMatcher
     void CreateBaDataset()
     {
         // Create a dataset for the Bundle Adjustment
-        // We need to save the 3D pose of each landmark.
-        // A) iterate through unique 2D landmarks (matched features)
-        // B) Project to 3D using depth image
-        // C) Transform the landmark to world coordinates using camera pose
 
         // camera_idx, unique_3d_pt_idx, current_cam_pix_x, current_cam_pix_y
         // ...
@@ -509,20 +508,23 @@ class FeatureMatcher
         // repeated for number of unique 3d points
 
         std::vector<std::optional<Eigen::Vector3d>> landmark3dPositions;
-        int                                         landmarkIdx = 0;
+        int                                         landmarkIdx     = 0;
+        int                                         numObservations = 0;
 
         // Write the camera observations of the landmarks
         for (auto landmark : uniqueLandmarks_)
         {
-            // Use the 1st descriptor/keypoint that sees this landmark while doing 3d projection
-            auto imgIdx   = landmark.at(0).imgIdx;
-            auto keypoint = keypointsAllImgs_.at(imgIdx).at(landmark.at(0).descIdx);
+            // Use the 1st descriptor's viewpoint that sees this landmark while doing 3d projection
+            auto imgIdx   = landmark.begin()->imgIdx;
+            auto keypoint = keypointsAllImgs_.at(imgIdx).at(landmark.begin()->descIdx);
             // get the pose of this camera from the odometry
             auto            cameraPose = cameraPoses_.at(imgIdx);
             Eigen::Matrix3d cameraRotation =
                 Eigen::Quaterniond(cameraPose.qw, cameraPose.qx, cameraPose.qy, cameraPose.qz).toRotationMatrix();
-            Eigen::Vector3d cameraTranslation(cameraPose.x, cameraPose.y, cameraPose.z);
-            landmark3dPositions.push_back(projectKeypointTo3d(imgIdx, keypoint, cameraRotation, cameraTranslation));
+            Eigen::Vector3d                cameraTranslation(cameraPose.x, cameraPose.y, cameraPose.z);
+            std::optional<Eigen::Vector3d> landmarkInWorldCoord =
+                projectKeypointTo3d(imgIdx, keypoint, cameraRotation, cameraTranslation);
+            landmark3dPositions.push_back(landmarkInWorldCoord);
 
             if (landmark3dPositions.back())
             {
@@ -530,11 +532,19 @@ class FeatureMatcher
                 {
                     imgIdx   = descriptor.imgIdx;
                     keypoint = keypointsAllImgs_.at(imgIdx).at(descriptor.descIdx);
+                    numObservations++;
                     baDataOutStream_ << imgIdx << " " << landmarkIdx << " " << keypoint.pt.x << " " << keypoint.pt.y
                                      << std::endl;
                 }
                 landmarkIdx++;
             }
+        }
+
+        // Write the camera poses
+        for (const RoboticsPose &cameraPose : cameraPoses_)
+        {
+            baDataOutStream_ << cameraPose.x << " " << cameraPose.y << " " << cameraPose.z << " " << cameraPose.qx
+                             << " " << cameraPose.qy << " " << cameraPose.qz << " " << cameraPose.qw << std::endl;
         }
 
         // Write the 3D poses of the landmarks
@@ -546,11 +556,21 @@ class FeatureMatcher
                                  << (*landmarkPosition)(2) << std::endl;
             }
         }
+
+        // Add header
+        baDataOutStream_.close();
+        std::ifstream     tempIn(BA_DATA_PATH);
+        std::stringstream payloadBuffer;
+        payloadBuffer << tempIn.rdbuf();
+        baDataOutStream_.open(BA_DATA_PATH);
+        baDataOutStream_ << "num_cameras num_3d_landmarks num_observations" << std::endl;
+        baDataOutStream_ << rgbImgs_.size() << " " << landmarkIdx << " " << numObservations
+                         << std::endl; // to be replaced
+        baDataOutStream_ << payloadBuffer.rdbuf();
     }
 
     ~FeatureMatcher()
     {
-        baDataOutStream_.close();
         std::cout << "Destructed\n";
     }
 
@@ -617,7 +637,7 @@ class FeatureMatcher
     std::vector<cv::Mat>                   descriptorsAllImgs_;
 
     // (num_imgs - 1) x(num_imgs - 1) x(num_matches_for_i_j_image_pair)x(source_descriptor_index,target_descriptor_index)
-    // globalMatchInfo_.at(queryImgIdx).at(targetImgIdx) --> gives a vector of matched descriptors between query and target image, as (queryImgDescriptorIdx,targetImgDescriptorIdx)
+    // globalMatchInfo_.at(queryImgIdx).at(targetImgIdx) --> gives a vector of matched descriptors between query and target image, as (queryImgDescriptorIdx,targetImgDescriptorIdx) pair
     std::vector<std::vector<std::vector<std::pair<int, int>>>> globalMatchInfo_;
 
     std::vector<std::vector<DescriptorIndentifier>> uniqueLandmarks_; // a landmark is a set set of Descriptors

@@ -25,14 +25,14 @@
 #include <vector>
 
 // ************  Constants of this example ************ //
-constexpr int N_ITER = 40;
-constexpr int N_POSES = 10;
+constexpr int    N_ITER     = 40;
+constexpr int    N_POSES    = 10;
 constexpr double ROBOT_STEP = 1.0; // true displacement (m)
-constexpr double W_ODOM = 0.3;     // deadreckon noise
+constexpr double W_ODOM     = 0.3; // deadreckon noise
 constexpr double W_LANDMARK = 0.2; // Landmark Observation  noise
 
 constexpr int MARKER_SIZE = 20;
-constexpr int LINE_WIDTH = 6;
+constexpr int LINE_WIDTH  = 6;
 // ************ ************ ************ //
 
 // ************ g2o Elements ************ //
@@ -41,7 +41,7 @@ constexpr int LINE_WIDTH = 6;
 // vertex), internal type to represent it
 class Vertex1DPose : public g2o::BaseVertex<1, double>
 {
-public:
+  public:
     void oplusImpl(const double *update) override
     {
         _estimate += double(update[0]);
@@ -58,41 +58,58 @@ public:
     virtual void setToOriginImpl()
     {
     }
-    virtual bool read(std::istream &in) {}
-    virtual bool write(std::ostream &out) const {}
+    virtual bool read(std::istream &in)
+    {
+    }
+    virtual bool write(std::ostream &out) const
+    {
+    }
 };
 
 class Vertex1DLandmark : public g2o::BaseVertex<1, double>
 {
-public:
+  public:
     void oplusImpl(const double *update) override
     {
         _estimate += double(update[0]);
     }
 
     // These need to be overwritten o/w compile error by g2o
-    virtual void setToOriginImpl() {}
-    virtual bool read(std::istream &in) {}
-    virtual bool write(std::ostream &out) const {}
+    virtual void setToOriginImpl()
+    {
+    }
+    virtual bool read(std::istream &in)
+    {
+    }
+    virtual bool write(std::ostream &out) const
+    {
+    }
 };
 
 // Error model template parameters: observation dimension, observation type, connecting vertex type(s)
-class OdometryEdgeProjection
-    : public g2o::BaseBinaryEdge<1, double, Vertex1DPose, Vertex1DLandmark>
+class OdometryEdgeProjection : public g2o::BaseBinaryEdge<1, double, Vertex1DPose, Vertex1DLandmark>
 {
-public:
-    OdometryEdgeProjection() {}
+  public:
+    OdometryEdgeProjection()
+    {
+    }
 
     virtual void computeError() override
     {
-        auto v0 = static_cast<Vertex1DPose *>(_vertices[0]);
-        auto v1 = static_cast<Vertex1DLandmark *>(_vertices[1]);
+        auto v0                = static_cast<Vertex1DPose *>(_vertices[0]);
+        auto v1                = static_cast<Vertex1DLandmark *>(_vertices[1]);
         auto projectedLandmark = v0->project(v1->estimate());
-        _error[0] = projectedLandmark - _measurement;
+        _error[0]              = projectedLandmark - _measurement;
     }
 
-    virtual bool read(std::istream &) { return false; }
-    virtual bool write(std::ostream &) const { return false; }
+    virtual bool read(std::istream &)
+    {
+        return false;
+    }
+    virtual bool write(std::ostream &) const
+    {
+        return false;
+    }
 };
 
 // ************  MAIN ************ //
@@ -100,23 +117,26 @@ public:
 int main()
 {
     // Get all the noisy observation and ground truth samples
-    double landmark_true{(N_POSES - 1) * ROBOT_STEP / 2.0}; // landmark is at the half-way
+    double              landmark_true{(N_POSES - 1) * ROBOT_STEP / 2.0}; // landmark is at the half-way
     std::vector<double> y_gt(N_POSES), y_odom(N_POSES), landmark_obs(N_POSES);
-    cv::RNG rand_gen; // random number generator
+    cv::RNG             rand_gen; // random number generator
 
-    y_gt.at(0) = 0.0;
-    y_odom.at(0) = y_gt.at(0);                                                       // we know the exact initial position
-    landmark_obs.at(0) = (landmark_true - y_gt.at(0));                               // true landmark distance
+    y_gt.at(0)         = 0.0;
+    y_odom.at(0)       = y_gt.at(0);                   // we know the exact initial position
+    landmark_obs.at(0) = (landmark_true - y_gt.at(0)); // true landmark distance
     landmark_obs.at(0) += (rand_gen.gaussian(W_LANDMARK * W_LANDMARK) * ROBOT_STEP); // add noise to observation
-    double landmark_init_est = y_gt.at(0) + landmark_obs.at(0);                      // we use the landmark observation from 1st pose as initial estimate of the landmark
+    double landmark_init_est =
+        y_gt.at(0) +
+        landmark_obs.at(0); // we use the landmark observation from 1st pose as initial estimate of the landmark
 
     for (int i = 1; i < N_POSES; i++)
     {
         y_gt.at(i) = y_gt.at(i - 1) + ROBOT_STEP;
-        double odom_step_with_noise = (1.0 + (rand_gen.gaussian(W_ODOM * W_ODOM))) * ROBOT_STEP; // scale the noise with the unit step of robot
-        y_odom.at(i) = y_odom.at(i - 1) + odom_step_with_noise;                                  // true robot pose
-        landmark_obs.at(i) = (landmark_true - y_gt.at(i));                                       // true landmark distance
-        landmark_obs.at(i) += (rand_gen.gaussian(W_LANDMARK * W_LANDMARK) * ROBOT_STEP);         // add noise to observation
+        double odom_step_with_noise =
+            (1.0 + (rand_gen.gaussian(W_ODOM * W_ODOM))) * ROBOT_STEP; // scale the noise with the unit step of robot
+        y_odom.at(i)       = y_odom.at(i - 1) + odom_step_with_noise;  // true robot pose
+        landmark_obs.at(i) = (landmark_true - y_gt.at(i));             // true landmark distance
+        landmark_obs.at(i) += (rand_gen.gaussian(W_LANDMARK * W_LANDMARK) * ROBOT_STEP); // add noise to observation
     }
     std::cout << "landmark true: " << landmark_true << std::endl;
     std::cout << "landmark init est: " << landmark_init_est << std::endl;
@@ -134,7 +154,7 @@ int main()
     g2o_optimizer.setAlgorithm(g2o_solver);
     g2o_optimizer.setVerbose(true);
 
-    std::vector<Vertex1DPose *> poseVertices;
+    std::vector<Vertex1DPose *>     poseVertices;
     std::vector<Vertex1DLandmark *> landmarkVertices;
     // Add the robot pose vertices to the graph
     for (int i = 0; i < y_odom.size(); i++)
@@ -176,7 +196,7 @@ int main()
     g2o_optimizer.optimize(N_ITER);
 
     std::vector<double> finalPoses;
-    double rmse_before{0}, rmse_after{0};
+    double              rmse_before{0}, rmse_after{0};
     for (int i = 0; i < poseVertices.size(); i++)
     {
         std::cout << "robot: " << i << " pos: " << poseVertices.at(i)->estimate() << std::endl;
@@ -198,8 +218,15 @@ int main()
     std::vector<double> x_axis(y_gt.size(), 0.0);
     matplot::plot(y_gt, x_axis, "o")->marker_size(MARKER_SIZE).line_width(LINE_WIDTH).display_name("ground truth");
     matplot::plot(y_odom, x_axis, "s")->marker_size(MARKER_SIZE).line_width(LINE_WIDTH).display_name("dead-reckon");
-    matplot::plot(finalPoses, x_axis, "x")->marker_size(MARKER_SIZE).marker_face(true).line_width(LINE_WIDTH).display_name("g2o estimate");
-    matplot::plot(landmark_obs_global_frame, x_axis, "d")->marker_size(MARKER_SIZE).line_width(LINE_WIDTH).display_name("landmark obs.");
+    matplot::plot(finalPoses, x_axis, "x")
+        ->marker_size(MARKER_SIZE)
+        .marker_face(true)
+        .line_width(LINE_WIDTH)
+        .display_name("g2o estimate");
+    matplot::plot(landmark_obs_global_frame, x_axis, "d")
+        ->marker_size(MARKER_SIZE)
+        .line_width(LINE_WIDTH)
+        .display_name("landmark obs.");
     matplot::legend()->font_size(MARKER_SIZE);
     matplot::grid(matplot::on);
     matplot::show();

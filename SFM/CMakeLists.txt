@@ -44,6 +44,12 @@ ${G2O_TYPES_SLAM2D}
 ${G2O_TYPES_SLAM3D}
 )
 
+#Sophus
+find_package(Sophus REQUIRED)
+if(Sophus_FOUND)
+    message("SOPHUS FOUND")
+endif()
+
 # cnpy 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../External/cnpy ${CMAKE_CURRENT_BINARY_DIR}/cnpy)
 
@@ -68,8 +74,8 @@ message(STATUS ${G2O_LIBS})
 
 #########################
 add_executable(pose_estimator pose_estimator.cpp)
-add_executable(bundle_adjuster BundleAdjuster.cpp)
 add_executable(feature_matcher feature_matcher.cpp)
+add_executable(bundle_adjuster bundle_adjuster.cpp)
 
 target_link_libraries(pose_estimator PUBLIC
     ${OpenCV_LIBS}

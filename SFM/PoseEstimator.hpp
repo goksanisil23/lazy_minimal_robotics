@@ -13,7 +13,7 @@
 namespace sfm
 {
 
-constexpr double DEPTH_THRESHOLD = 999.0;
+constexpr double DEPTH_THRESHOLD = 2000.0;
 
 // Feature matching parameters
 constexpr int32_t MAX_ORB_FEAUTURES          = 3000;
@@ -33,6 +33,7 @@ constexpr int32_t KLT_PYRAMIDS    = 3;
 
 const std::string RGB_PCD_PATH_PREFIX = "../resources/data/pcds/after_viso/rgb/rgb_cloud_";
 const std::string KP_PCD_PATH_PREFIX  = "../resources/data/pcds/after_viso/kp/keypoint_cloud_";
+const std::string CAM_POSE_OUT_PATH   = "../resources/data/camera_poses_odom.txt";
 
 struct Landmark
 {
@@ -110,14 +111,7 @@ class PoseEstimator
         // vis.GetRenderOption().point_size_ = 3;
         // vis.GetRenderOption().show_coordinate_frame_ = true;
 
-        // matplotlibcpp::figure_size(600, 400);
-        data_for_ba_txt_.open("../resources/data_for_ba.txt");
-        data_for_ba_txt_ << "image_k_minus feature_k_minus_x_coord feature_k_minus_y_coord "
-                            "image_k feature_k_x_coord feature_k_y_coord "
-                            "3d_world_pt_x 3d_world_pt_y 3d_world_pt_z"
-                         << std::endl;
-
-        camera_poses_txt_.open("../resources/camera_poses.txt");
+        camera_poses_txt_.open(CAM_POSE_OUT_PATH);
         camera_poses_txt_ << "image_index t_x t_y t_z q_x q_y q_z q_w" << std::endl;
         saveCameraPose(0, Eigen::Vector3d({0, 0, 0}), Eigen::Matrix3d::Identity());
     }
@@ -136,9 +130,9 @@ class PoseEstimator
     void transformPointsTo3dLandmarks(const int                      &imgIdx,
                                       const std::vector<cv::Point3d> &model_points,
                                       const Eigen::Matrix3d          &rot,
-                                      const Eigen::Vector3d          &trans,
-                                      std::vector<Eigen::Vector3d>   &landmark_points)
+                                      const Eigen::Vector3d          &trans)
     {
+        std::vector<Eigen::Vector3d> landmark_points;
         for (auto pt_in_cam_frame : model_points)
         {
             Eigen::Vector3d pt_in_world_frame =
@@ -198,7 +192,7 @@ class PoseEstimator
         cv::cvtColor(rgb_image, img_gray, cv::COLOR_BGR2GRAY);
         std::vector<cv::KeyPoint>         keypoints;
         std::vector<cv::Point2f>          good_keypoints, good_prev_keypoints;
-        std::vector<cv::Point3d>          model_points;
+        std::vector<cv::Point3d>          model_points, model_points_rounded;
         std::vector<cv::Point2d>          image_points;
         std::vector<MatchedFeatureCoords> matched_feature_coords;
         cv::Mat descriptors, good_descriptors; // (num_keypoints x descriptor_size) = (3000 x 32)
@@ -235,6 +229,13 @@ class PoseEstimator
                         double      x_world = (good_prev_keypoints.back().x - _cX) * depth / _fX;
                         double      y_world = (good_prev_keypoints.back().y - _cY) * depth / _fY;
                         cv::Point3d world_pt(x_world, y_world, depth);
+
+                        // Rounded
+                        double      x_world_rounded = (std::round(good_prev_keypoints.back().x) - _cX) * depth / _fX;
+                        double      y_world_rounded = (std::round(good_prev_keypoints.back().y) - _cY) * depth / _fY;
+                        cv::Point3d world_pt_rounded(x_world_rounded, y_world_rounded, depth);
+                        model_points_rounded.push_back(world_pt_rounded);
+
                         // 3d point at (k-1)
                         model_points.push_back(world_pt);
                         // corresponding image point at (k)
@@ -312,18 +313,17 @@ class PoseEstimator
                 y_traj.push_back(t_total.at<double>(1));
                 z_traj.push_back(t_total.at<double>(2));
 
-                std::vector<Eigen::Vector3d> landmark_points;
                 // use transform of idx k-1 since the 3d model points (model_points) belong to k-1
-                transformPointsTo3dLandmarks(imgIdx - 1, model_points, eigenR_prev, eigenT_prev, landmark_points);
+                // transformPointsTo3dLandmarks(imgIdx - 1, model_points, eigenR_prev, eigenT_prev, landmark_points);
+                transformPointsTo3dLandmarks(imgIdx - 1, model_points_rounded, eigenR_prev, eigenT_prev);
                 saveCameraPose(imgIdx, eigenT, eigenR);
-                // saveForBA(imgIdx, matched_feature_coords, inlier_idxs, landmark_points);
 
                 // Visualize
-                // matplot::cla();
-                // matplot::plot(z_traj, x_traj, "-o");
-                // matplot::legend();
-                // matplot::grid(matplot::on);
-                // matplot::show();
+                matplot::cla();
+                matplot::plot(z_traj, x_traj, "-o");
+                matplot::legend();
+                matplot::grid(matplot::on);
+                matplot::show();
             }
             else
             {
@@ -340,27 +340,6 @@ class PoseEstimator
         prev_depth_img_   = depth_image.clone();
         prev_keypoints_   = std::move(keypoints);
         prev_descriptors_ = std::move(descriptors);
-    }
-
-    void saveForBA(const int                               &imgIdx,
-                   const std::vector<MatchedFeatureCoords> &matched_feature_coords,
-                   const std::vector<int>                  &inlier_idxs,
-                   const std::vector<Eigen::Vector3d>      &landmark_points)
-    {
-        // matched_feature_coords & landmark_points are aligned in size and indices
-        for (auto idx : inlier_idxs)
-        {
-            // Round the pixel coordinates in order to allow matching later on
-            data_for_ba_txt_ << imgIdx - 1 << " "
-
-                             << std::round(matched_feature_coords.at(idx).x_k_minus) << " "
-                             << std::round(matched_feature_coords.at(idx).y_k_minus) << " " << imgIdx << " "
-                             << std::round(matched_feature_coords.at(idx).x_k) << " "
-                             << std::round(matched_feature_coords.at(idx).y_k_minus) << " "
-
-                             << landmark_points.at(idx)(0) << " " << landmark_points.at(idx)(1) << " "
-                             << landmark_points.at(idx)(2) << std::endl;
-        }
     }
 
     void saveCameraPose(const int &imgIdx, const Eigen::Vector3d &t, const Eigen::Matrix3d &R)
@@ -500,7 +479,6 @@ class PoseEstimator
 
     ~PoseEstimator()
     {
-        data_for_ba_txt_.close();
     }
 
   private:
@@ -530,7 +508,6 @@ class PoseEstimator
     cv::Mat R_prev, t_prev;
 
     std::vector<float> x_traj, y_traj, z_traj;
-    std::ofstream      data_for_ba_txt_;
     std::ofstream      camera_poses_txt_;
 };
 } // namespace sfm

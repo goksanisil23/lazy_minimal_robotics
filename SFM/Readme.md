@@ -18,7 +18,7 @@ Offline
 
  in slambook BA example:
  - observations: 2D pixel coordinates. Many observations. Each observation contains a camera_pose idx and 3D world point idx
- - vertices: (3D camera poses+camera intrinsics), (3D landmark poses)
+ - vertices: (6D camera poses + camera intrinsics) + (3D landmark points)
  - edges: 2D feature measurement taken from a specific camera pose of a specific 3D landmark (connecting these 2 vertices)
  NOTE: 3D landmark poses are in world coordinates, therefore reprojectection error calculation needs to:
  - transform 3d world landmark to image plane :
@@ -44,3 +44,13 @@ repeated for number of unique 3d points
 ## note that pixel coordinates of matched features do not exist in the data above.
 ## the 2D feature matches are actually represented as 3d point indices, 
 ## since going from 2D->3D is just a matter of perspective projection
+
+4634530 + 9*1408 + 3*912229
+
+
+
+## PIPELINE:
+1) carla image saver: collect the depth and rgb images, and camera ground truth poses.
+2) Pose Estimator: get camera poses with visual odometry using depth+rgb images, via pair-wise feature matching.
+ --> Problem: When we look at rgb pointcloud vs keypoint pointcloud, since keypoint pointcloud is generated with floating point pixel coordinates,
+ it does not align perfectly with the rgb cloud which is generated with integer pixel coordinates.

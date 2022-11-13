@@ -10,7 +10,7 @@
 // const std::string IMAGES_DIR("/home/goksan/Downloads/depthai-experiments/gen2-pointcloud/rgbd-pointcloud/imgs3");
 const std::string IMAGES_RGB_DIR("../resources/data/imgs/rgb");
 const std::string IMAGES_DEPTH_DIR("../resources/data/imgs/depth");
-const std::string CAMERA_POSES_DIR("../resources/data/imgs/depth");
+const std::string CAMERA_POSES_PATH("../resources/data/camera_poses_odom.txt");
 
 sfm::FeatureMatcher::RoboticsPose getCameraPoseFromString(const std::string cameraPoseString)
 {
@@ -29,7 +29,7 @@ int main()
     sfm::FeatureMatcher    feature_matcher;
 
     std::fstream odomCameraPosesTxtStream;
-    odomCameraPosesTxtStream.open(CAMERA_POSES_DIR);
+    odomCameraPosesTxtStream.open(CAMERA_POSES_PATH);
     std::string cameraOdomLine;
     std::getline(odomCameraPosesTxtStream, cameraOdomLine); // skip the 1st header line
 
