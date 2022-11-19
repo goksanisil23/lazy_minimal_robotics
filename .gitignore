@@ -40,3 +40,7 @@ build/
 *settings.json*
 
 *drawio*
+
+# folder-wise exceptions
+**/SFM/resources/data/**/*.pcd
+**/SFM/resources/data/**/*.png
