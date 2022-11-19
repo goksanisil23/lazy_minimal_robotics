@@ -8,7 +8,7 @@ When we have multiple images of a given scene from different view points, the 3d
 
 The core idea of bundle adjustment is to minimize the reprojection error given multiple measurements of the same landmark from multiple viewpoints. Here, measurements are the pixel coordinates of a landmark in the image frame, with a camera index. Therefore, a crucial pre-step of bundle adjustment is to associate keypoints in multiple images to each other. Once a 3d landmark coordinate can be associated to pixel coordinates in multiple images, a graphical bundle adjustment problem can be formulated in variuous optimization libraries (g2o, Ceres, etc.)
 
-## Note about scale in Structure From Motion
+### Note about scale in Structure From Motion
 - Scale ambiguity is still there (if there's no known 3D landmark introduced somewhere in the chain)
 - Most clearly stated in the abstract of this paper: https://rpg.ifi.uzh.ch/docs/ICCV09_scaramuzza.pdf:
     - *In structure-from-motion with a single camera, the scene can be only recovered up to a scale. In order to compute the absolute scale, one needs to know the baseline of the camera motion or the dimension of at least one element in the scene.*
@@ -26,20 +26,26 @@ The core idea of bundle adjustment is to minimize the reprojection error given m
     - world -> 3D-camera frame 
     - 3D-Camera frame -> image plane (perspective proj)
 
-
-## Bundle adjustment data format
+### Bundle adjustment data format
 We follow the "Bundle ADjustment In Large" Washington dataset format. (https://grail.cs.washington.edu/projects/bal/)
 
+### Pipeline:
 
-## PIPELINE:
-
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/GraphOpt/resources/graph_unary.png" width=50% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/bundle_adjustment_diagram.png" width=50% height=50%>
 
 1) carla image saver: collect the depth and rgb images, and camera ground truth poses.
 2) **Pose Estimator**: Estimate camera poses with visual odometry using depth + rgb images, via pair-wise feature matching.
-3) **Feature Matcher**: Find matching keypoints *in at least 3 images*, which will constitute a landmark. Generate the 3D world position of the landmark by using position of one of the cameras seein that landmark. This step outputs a "bundle adjustment dataset" txt file containing:
+3) **Feature Matcher**: Find matching keypoints *in at least 3 images*, which will constitute a landmark. Generate the 3D world position of the landmark by using position of one of the cameras seeing that landmark. This step outputs a "bundle adjustment dataset" txt file containing:
 - observations (pixel keypoint, camera index, landmark index)
 - 6D camera poses in world frame
 - 3D landmark points in world frame
  which will be used in next step.
 4) **Bundle Adjuster**: Jointly optimize for the camera poses and landmark positions by minimizing the landmark reprojection error.
+
+### Result
+
+
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/rgb_cloud_viso.png" width=50% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/rgb_cloud_g2o.png" width=50% height=50%>
+
+
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/rgb_cloud_viso_2.png" width=50% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/rgb_cloud_g2o_2.png" width=50% height=50%>
