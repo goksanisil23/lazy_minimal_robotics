@@ -1,4 +1,4 @@
-# lazy_minimal_robotics
+# Lazy Minimal Robotics
 Minimal implementations for personally interesting ideas &amp; algorithms that can be useful for robotics applications, in C/C++.
 
 ### Menu
