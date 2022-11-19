@@ -42,10 +42,16 @@ We follow the "Bundle ADjustment In Large" Washington dataset format. (https://g
  which will be used in next step.
 4) **Bundle Adjuster**: Jointly optimize for the camera poses and landmark positions by minimizing the landmark reprojection error.
 
-### Result
+### Results
+
+Left: RGB pointcloud after visual odometry
+Right: RGB pointcloud after bundle adjustment
 
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/rgb_cloud_viso.png" width=50% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/rgb_cloud_g2o.png" width=50% height=50%>
 
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/rgb_cloud_viso_2.png" width=50% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/rgb_cloud_g2o_2.png" width=50% height=50%>
+
+
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/rgb_cloud_viso_3.png" width=50% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/rgb_cloud_g2o_3.png" width=50% height=50%>
