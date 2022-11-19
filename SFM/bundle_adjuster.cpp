@@ -88,9 +88,9 @@ int main()
         edge->setMeasurement(Eigen::Vector2d(
             measurement.keypointU, measurement.keypointV)); // pixel coordinates of this landmark on this camera image
         edge->setInformation(Eigen::Matrix2d::Identity());
-        // edge->setRobustKernel(new g2o::RobustKernelHuber());
+        // edge->setRobustKernel(new g2o::RobustKernelHuber()); // ALmost never good
         // edge->setRobustKernel(new g2o::RobustKernelWelsch()); // diverges after some iterations, but at lowest chi^2, gives good result
-        // edge->setRobustKernel(new g2o::RobustKernelCauchy()); // MUCH BETTER THAN HUBER and TUKEY
+        // edge->setRobustKernel(new g2o::RobustKernelCauchy()); // MUCH BETTER THAN HUBER and TUKEY for <20 images
         edge->setRobustKernel(new g2o::RobustKernelGemanMcClure()); // WOrks best for 20+ images
         // edge->setRobustKernel(nullptr); // Causes all poses to be same. Weird.
         g2o_optimizer.addEdge(edge);

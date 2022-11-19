@@ -33,7 +33,7 @@ We follow the "Bundle ADjustment In Large" Washington dataset format. (https://g
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/bundle_adjustment_diagram.png" width=50% height=50%>
 
-1) carla image saver: collect the depth and rgb images, and camera ground truth poses.
+1) **Carla image saver**: collect the depth and rgb images, and camera ground truth poses.
 2) **Pose Estimator**: Estimate camera poses with visual odometry using depth + rgb images, via pair-wise feature matching.
 3) **Feature Matcher**: Find matching keypoints *in at least 3 images*, which will constitute a landmark. Generate the 3D world position of the landmark by using position of one of the cameras seeing that landmark. This step outputs a "bundle adjustment dataset" txt file containing:
 - observations (pixel keypoint, camera index, landmark index)
@@ -44,8 +44,9 @@ We follow the "Bundle ADjustment In Large" Washington dataset format. (https://g
 
 ### Results
 
-Left: RGB pointcloud after visual odometry
-Right: RGB pointcloud after bundle adjustment
+**Left:** RGB pointcloud after visual odometry
+
+**Right:** RGB pointcloud after bundle adjustment
 
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/rgb_cloud_viso.png" width=50% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/rgb_cloud_g2o.png" width=50% height=50%>
