@@ -19,7 +19,7 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [x] [Stereo Vision Depth Estimation](/StereoDepth)
 - [ ] Direct Monocular Visual Odometry
 - [ ] Direct with GPU
-- [x] Structure from Motion with Bundle Adjustment(/SFM)
+- [x] [Structure from Motion with Bundle Adjustment](/SFM)
 - [ ] Structure from Motion with Pose Graph Optimization
 - [ ] Dense Reconstruction via Multi-View Stereo
 - [ ] Factor graph object tracking
