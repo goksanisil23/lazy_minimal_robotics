@@ -31,7 +31,7 @@ We follow the "Bundle ADjustment In Large" Washington dataset format. (https://g
 
 ### Pipeline:
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/bundle_adjustment_diagram.png" width=50% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/bundle_adjustment_diagram.png" width=30% height=30%>
 
 1) **Carla image saver**: collect the depth and rgb images, and camera ground truth poses.
 2) **Pose Estimator**: Estimate camera poses with visual odometry using depth + rgb images, via pair-wise feature matching.

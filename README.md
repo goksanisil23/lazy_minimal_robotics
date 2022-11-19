@@ -1,8 +1,7 @@
 # lazy_minimal_robotics
 Minimal implementations for personally interesting ideas &amp; algorithms that can be useful for robotics applications, in C/C++.
 
-
-### TODO
+### Menu
 
 - [x] [Gauss-Newton curve fitting](/NonLinearOpt/GaussNewton)
 - [x] [Ceres curve fitting](/NonLinearOpt/Ceres)
