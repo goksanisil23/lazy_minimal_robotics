@@ -76,6 +76,8 @@ message(STATUS ${G2O_LIBS})
 add_executable(pose_estimator pose_estimator.cpp)
 add_executable(feature_matcher feature_matcher.cpp)
 add_executable(bundle_adjuster bundle_adjuster.cpp)
+add_executable(reproject reproject.cpp)
+
 
 target_link_libraries(pose_estimator PUBLIC
     ${OpenCV_LIBS}
@@ -98,8 +100,11 @@ target_link_libraries(bundle_adjuster PUBLIC
 target_link_libraries(feature_matcher PUBLIC
     ${OpenCV_LIBS}
     Open3D::Open3D
-    Open3D::Open3D
     matplot      
+)
+target_link_libraries(reproject PUBLIC
+    ${OpenCV_LIBS}
+    Open3D::Open3D
 )
 
 target_include_directories(pose_estimator PUBLIC 
@@ -111,4 +116,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/../External/cnpy
 ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(bundle_adjuster PUBLIC 
+${CMAKE_CURRENT_SOURCE_DIR})
+
+target_include_directories(reproject PUBLIC 
+${CMAKE_CURRENT_SOURCE_DIR}/../External/cnpy
 ${CMAKE_CURRENT_SOURCE_DIR})

@@ -57,7 +57,7 @@ class Pose6dVertex : public g2o::BaseVertex<6, Pose6d>
     }
 
     // Project the 3d point in world coordinates to image
-    // input 3d-point is projected by using the known camera intrinsics
+    // input 3d-point in world coordinates is projected by using the known camera intrinsics
     // and the current estimate of the camera pose (extrinsics) within this vertex
     Eigen::Vector2d project3dPointToImage(const Eigen::Vector3d &world_point_3d)
     {
@@ -79,7 +79,7 @@ class Pose6dVertex : public g2o::BaseVertex<6, Pose6d>
         Eigen::Matrix4d P_c(Eigen::Matrix4d::Identity());
         P_c = T_c_w * P_w;
 
-        // project to image using intrinsics
+        // project from camera frame to image plane using intrinsics (projection)
         double u = fx_ * -P_c(0, 3) / P_c(2, 3) + cx_;
         double v = fy_ * -P_c(1, 3) / P_c(2, 3) + cy_;
 

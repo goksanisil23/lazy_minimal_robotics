@@ -49,15 +49,14 @@ void parseBaDataset(const std::string            &baDatasetPath,
     // num_cameras num_3d_landmarks num_observations
     // 10 300 1084
 
-    // Get camera pose for this cloud
     std::ifstream baFile(baDatasetPath);
     std::string   line;
     std::getline(baFile, line); // skip 1st line
     std::getline(baFile, line); // get amounts of stuff from 2nd line
-    std::istringstream numStream(line);
+    std::istringstream lineStream(line);
 
     size_t numCameras, numLandmarks, numMeasurements;
-    numStream >> numCameras >> numLandmarks >> numMeasurements;
+    lineStream >> numCameras >> numLandmarks >> numMeasurements;
 
     // Parse observations
     int line_ctr = 1;
@@ -106,19 +105,6 @@ void parseBaDataset(const std::string            &baDatasetPath,
         line_ctr++;
     }
 }
-
-// baDataOutStream_ << "num_cameras num_3d_landmarks num_observations" << std::endl;
-
-// baDataOutStream_ << imgIdx << " " << landmarkIdx << " " << keypoint.pt.x << " " << keypoint.pt.y
-//                  << std::endl;
-
-// for (const RoboticsPose &cameraPose : cameraPoses_)
-// {
-//     baDataOutStream_ << cameraPose.x << " " << cameraPose.y << " " << cameraPose.z << " " << cameraPose.qx << " "
-//                      << cameraPose.qy << " " << cameraPose.qz << " " << cameraPose.qw << std::endl;
-
-// baDataOutStream_ << (*landmarkPosition)(0) << " " << (*landmarkPosition)(1) << " "
-//                  << (*landmarkPosition)(2) << std::endl;
 
 } // namespace dataset_parser
 } // namespace ba

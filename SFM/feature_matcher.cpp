@@ -7,7 +7,6 @@
 #include "FeatureMatcher.hpp"
 #include "ImageHandler.hpp"
 
-// const std::string IMAGES_DIR("/home/goksan/Downloads/depthai-experiments/gen2-pointcloud/rgbd-pointcloud/imgs3");
 const std::string IMAGES_RGB_DIR("../resources/data/imgs/rgb");
 const std::string IMAGES_DEPTH_DIR("../resources/data/imgs/depth");
 const std::string CAMERA_POSES_PATH("../resources/data/camera_poses_odom.txt");
@@ -49,8 +48,8 @@ int main()
             img_ctr = (img_ctr + 1);
             std::cout << "Read img: " << img_ctr << std::endl;
 
-            if (img_ctr == 10)
-                break;
+            // if (img_ctr == 50)
+            //     break;
         }
     }
 
