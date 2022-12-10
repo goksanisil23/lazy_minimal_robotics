@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<package format="2">
-  <name>landmark_sim_2d</name>
+<package format="3">
+  <name>landmark_sim_2d_vis</name>
   <version>0.1.1</version>
   <description>Simple 2d landmark sim</description>
   <maintainer email="goxan.isil@gmail.com">Goksan Isil</maintainer>
@@ -8,13 +8,18 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-
   <depend>visualization_msgs</depend>
   <depend>nav_msgs</depend>
+  <depend>landmarksim2d_msgs</depend>
+  <depend>landmarkSim2dLib</depend>
 
   <build_depend>rclcpp</build_depend>
-
   <exec_depend>rclcpp</exec_depend>
+
+  <!-- For custom msg definitions -->
+  <build_depend>rosidl_default_generators</build_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

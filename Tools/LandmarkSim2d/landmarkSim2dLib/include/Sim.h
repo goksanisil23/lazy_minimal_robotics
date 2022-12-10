@@ -7,6 +7,9 @@
 
 namespace landmarkSim2D
 {
+
+const std::string MAP_PATH = "/tmp/landmark_map_2d.txt";
+
 class Sim
 {
   public:

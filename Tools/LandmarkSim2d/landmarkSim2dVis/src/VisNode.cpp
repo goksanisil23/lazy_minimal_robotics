@@ -13,15 +13,19 @@ VisNode::VisNode() : Node("landmark_sim_2d")
     robot_motion_timer_      = create_wall_timer(10ms, std::bind(&VisNode::MotionTimerCallback, this));
     robot_observation_timer_ = create_wall_timer(100ms, std::bind(&VisNode::ObservationTimerCallback, this));
 
-    gtOdomPublisher_         = this->create_publisher<nav_msgs::msg::Odometry>("gt_odom", rclcpp::SensorDataQoS());
-    estOdomPublisher_        = this->create_publisher<nav_msgs::msg::Odometry>("est_odom", rclcpp::SensorDataQoS());
-    deadreckonOdomPublisher_ = this->create_publisher<nav_msgs::msg::Odometry>("dr_odom", rclcpp::SensorDataQoS());
+    truePosePublisher_ = this->create_publisher<nav_msgs::msg::Odometry>("gt_odom", rclcpp::SensorDataQoS());
+    estPosePublisher_  = this->create_publisher<nav_msgs::msg::Odometry>("est_odom", rclcpp::SensorDataQoS());
+    drPosePublisher_   = this->create_publisher<nav_msgs::msg::Odometry>("dr_odom", rclcpp::SensorDataQoS());
     landmarkMarkerPublisher_ =
         this->create_publisher<visualization_msgs::msg::MarkerArray>("landmark_markers", rclcpp::SensorDataQoS());
     observationMarkerPublisher_ =
         this->create_publisher<visualization_msgs::msg::Marker>("observation_markers", rclcpp::SensorDataQoS());
     sensorFovMarkerPublisher_ =
         this->create_publisher<visualization_msgs::msg::Marker>("sensor_fov_marker", rclcpp::SensorDataQoS());
+    landmarkObsPublisher_ =
+        this->create_publisher<landmarksim2d_msgs::msg::RangeBearingObsMsg>("landmark_obs", rclcpp::SensorDataQoS());
+    ctrlInMeasPublisher_ =
+        this->create_publisher<landmarksim2d_msgs::msg::ControlInputMeasMsg>("ctrl_in_meas", rclcpp::SensorDataQoS());
 
     PublishLandmarkMarkers(landmarkSim_->map->landmarks);
 }
@@ -36,7 +40,7 @@ void VisNode::PublishLandmarkMarkers(const std::vector<Map::Landmark> &mapLandma
             this->get_subscriptions_info_by_topic("landmark_markers");
         for (auto subInfoNode : subscriptionInfo)
         {
-            if (subInfoNode.node_name() == "rviz")
+            if (subInfoNode.node_name() == "rviz2")
             {
                 RCLCPP_INFO(this->get_logger(), "Rviz is connected!");
                 rvizConnected = true;
@@ -94,18 +98,21 @@ void VisNode::MotionTimerCallback()
     landmarkSim_->Step(dt);
     prevTime = currTime;
 
-    PublishGtOdom(landmarkSim_->robot->pose);
+    PublishTruePose(landmarkSim_->robot->truePose_);
+    PublishDrPose(landmarkSim_->robot->drPose_);
+    PublishCtrlInMeas(landmarkSim_->robot->measuredControlInput_);
 }
 
 // Robot sensing and visualization
 void VisNode::ObservationTimerCallback()
 {
     landmarkSim_->robot->Sense();
-    ShowObservations(landmarkSim_->robot->observedLandmarks, landmarkSim_->robot->pose);
-    ShowRobotFov(landmarkSim_->robot->pose, landmarkSim_->robot->GetSensorRange());
+    ShowObservations(landmarkSim_->robot->observedLandmarks_, landmarkSim_->robot->truePose_);
+    ShowRobotFov(landmarkSim_->robot->truePose_, landmarkSim_->robot->GetSensorRange());
+    PublishObservations(landmarkSim_->robot->observedLandmarks_);
 }
 
-void VisNode::PublishGtOdom(const landmarkSim2D::Pose2D &robotPose)
+void VisNode::PublishTruePose(const landmarkSim2D::Pose2D &robotPose)
 {
     // Generate odometry msg from robot pose
     nav_msgs::msg::Odometry gtOdom;
@@ -120,7 +127,25 @@ void VisNode::PublishGtOdom(const landmarkSim2D::Pose2D &robotPose)
     quat.normalize();
     gtOdom.pose.pose.orientation = tf2::toMsg(quat);
 
-    gtOdomPublisher_->publish(gtOdom);
+    truePosePublisher_->publish(gtOdom);
+}
+
+void VisNode::PublishDrPose(const landmarkSim2D::Pose2D &robotPose)
+{
+    // Generate odometry msg from robot pose
+    nav_msgs::msg::Odometry drOdom;
+    drOdom.header.frame_id      = "map";
+    drOdom.child_frame_id       = "robot";
+    drOdom.header.stamp         = this->get_clock()->now();
+    drOdom.pose.pose.position.x = robotPose.posX;
+    drOdom.pose.pose.position.y = robotPose.posY;
+    drOdom.pose.pose.position.z = 0.0;
+    tf2::Quaternion quat;
+    quat.setRPY(0., 0., robotPose.yawRad);
+    quat.normalize();
+    drOdom.pose.pose.orientation = tf2::toMsg(quat);
+
+    drPosePublisher_->publish(drOdom);
 }
 
 void VisNode::ShowObservations(const std::vector<RangeBearingObs> &landmarkObservations, const Pose2D &robotPose)
@@ -157,6 +182,33 @@ void VisNode::ShowObservations(const std::vector<RangeBearingObs> &landmarkObser
     }
 
     observationMarkerPublisher_->publish(obsMarkerLines);
+}
+
+void VisNode::PublishObservations(const std::vector<RangeBearingObs> &landmarkObservations)
+{
+    landmarksim2d_msgs::msg::RangeBearingObsMsg lmObsMsg;
+    lmObsMsg.header.stamp    = this->now();
+    lmObsMsg.header.frame_id = "robot";
+    for (const auto &lmObs : landmarkObservations)
+    {
+        lmObsMsg.ids.push_back(lmObs.id);
+        lmObsMsg.ranges.push_back(lmObs.range);
+        lmObsMsg.angles.push_back(lmObs.angleRad);
+    }
+
+    landmarkObsPublisher_->publish(lmObsMsg);
+}
+
+void VisNode::PublishCtrlInMeas(const landmarkSim2D::ControlInput &controlInputMeas)
+{
+    landmarksim2d_msgs::msg::ControlInputMeasMsg ctrlInMeasMsg;
+
+    ctrlInMeasMsg.header.stamp    = this->now();
+    ctrlInMeasMsg.header.frame_id = "robot";
+    ctrlInMeasMsg.linear_vel      = controlInputMeas.linearVel;
+    ctrlInMeasMsg.angular_vel     = controlInputMeas.angularVel;
+
+    ctrlInMeasPublisher_->publish(ctrlInMeasMsg);
 }
 
 void VisNode::ShowRobotFov(const Pose2D &robotPose, const float &sensorRange)

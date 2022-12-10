@@ -3,6 +3,8 @@
 #include <chrono>
 #include <memory>
 
+#include "landmarksim2d_msgs/msg/control_input_meas_msg.hpp"
+#include "landmarksim2d_msgs/msg/range_bearing_obs_msg.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "tf2/LinearMath/Quaternion.h"
@@ -10,7 +12,7 @@
 #include "visualization_msgs/msg/marker.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 
-#include "Sim.h"
+#include <landmarkSim2dLib/Sim.h>
 
 using namespace std::chrono_literals;
 
@@ -25,7 +27,10 @@ class VisNode : public rclcpp::Node
     void MotionTimerCallback();
     void ObservationTimerCallback();
     void PublishLandmarkMarkers(const std::vector<Map::Landmark> &mapLandmarks);
-    void PublishGtOdom(const landmarkSim2D::Pose2D &robotPose);
+    void PublishTruePose(const landmarkSim2D::Pose2D &robotPose);
+    void PublishDrPose(const landmarkSim2D::Pose2D &robotPose);
+    void PublishCtrlInMeas(const landmarkSim2D::ControlInput &controlInputMeas);
+    void PublishObservations(const std::vector<RangeBearingObs> &landmarkObservations);
     void ShowObservations(const std::vector<RangeBearingObs> &landmarkObservations, const Pose2D &robotPose);
     void ShowRobotFov(const Pose2D &robotPose, const float &sensorRange);
 
@@ -38,9 +43,12 @@ class VisNode : public rclcpp::Node
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr      observationMarkerPublisher_;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr      sensorFovMarkerPublisher_;
 
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr gtOdomPublisher_;
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr deadreckonOdomPublisher_;
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr estOdomPublisher_;
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr truePosePublisher_;
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr drPosePublisher_;
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr estPosePublisher_;
+
+    rclcpp::Publisher<landmarksim2d_msgs::msg::RangeBearingObsMsg>::SharedPtr  landmarkObsPublisher_;
+    rclcpp::Publisher<landmarksim2d_msgs::msg::ControlInputMeasMsg>::SharedPtr ctrlInMeasPublisher_;
 
     visualization_msgs::msg::MarkerArray landmarkMapMarkers_;
 };

@@ -22,3 +22,6 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [ ] Structure from Motion with Pose Graph Optimization
 - [ ] Dense Reconstruction via Multi-View Stereo
 - [ ] Factor graph object tracking
+- [ ] Occupancy Grid
+- [ ] Single & Multi object tracking
+- [ ] Optimal Assignment (hungarian algo)

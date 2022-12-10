@@ -2,6 +2,22 @@
 
 namespace landmarkSim2D
 {
+
+Map::Map(const std::string &mapFilePath)
+{
+    std::ifstream mapFile(mapFilePath);
+    std::string   line;
+    while (std::getline(mapFile, line))
+    {
+        std::istringstream istream(line);
+        int                landmarkIdx;
+        float              posX, posY;
+
+        istream >> landmarkIdx >> posX >> posY;
+        landmarks.push_back(Landmark(landmarkIdx, posX, posY));
+    }
+}
+
 void Map::GenerateCircularLandmarks(const float &radius, const float &angleIntervalRad)
 {
     int16_t numLandmarks = 2 * M_PI / angleIntervalRad;
@@ -32,7 +48,20 @@ std::vector<Map::Landmark> Map::GetLandmarksWithinRadius(const Pose2D &pose, con
         }
     }
 
-    return std::move(landmarksInRange);
+    return landmarksInRange;
+}
+
+void Map::DumpMapToFile(const std::string &outputFileName)
+{
+    std::ofstream mapFile;
+    mapFile.open(outputFileName);
+
+    for (const auto &landmark : landmarks)
+    {
+        mapFile << landmark.id << " " << landmark.posX << " " << landmark.posY << std::endl;
+    }
+
+    mapFile.close();
 }
 
 } // namespace landmarkSim2D

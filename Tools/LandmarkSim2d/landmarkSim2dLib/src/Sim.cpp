@@ -16,6 +16,7 @@ Sim::Sim()
     map = std::make_shared<Map>();
     map->GenerateCircularLandmarks(smallCircleRadius, smallCircleLmAngleIntervalDeg * M_PI / 180.0);
     map->GenerateCircularLandmarks(bigCircleRadius, bigCircleLmAngleIntervalDeg * M_PI / 180.0);
+    map->DumpMapToFile(MAP_PATH);
 
     Pose2D robotInitPose((smallCircleRadius + bigCircleRadius) / 2.0, 0.0, M_PI / 2);
     robot = std::make_shared<Robot>(robotInitPose, *map);

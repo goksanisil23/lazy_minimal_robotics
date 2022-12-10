@@ -1,13 +1,17 @@
 #pragma once
 
 #include <cstdint>
+#include <fstream>
+#include <iostream>
 #include <math.h>
+#include <sstream>
 #include <vector>
 
 #include "Pose2D.h"
 
 namespace landmarkSim2D
 {
+
 class Map
 {
   public:
@@ -25,8 +29,10 @@ class Map
 
     // Methods
     Map() = default;
+    Map(const std::string &mapFilePath); // construct the map from file contents
     void                  GenerateCircularLandmarks(const float &radius, const float &angleIntervalRad);
     std::vector<Landmark> GetLandmarksWithinRadius(const Pose2D &pose, const float &radius);
+    void                  DumpMapToFile(const std::string &outputFileName);
 
     // Variables
     std::vector<Landmark> landmarks;

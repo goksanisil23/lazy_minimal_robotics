@@ -8,5 +8,7 @@ mkdir -p ~/ros2_ws/src
 ln -s $(pwd)/LandmarkSim2D/ ~/ros2_ws/src/LandmarkSim2D
 cd ~/ros2_ws
 colcon build --symlink-install
+# Or
+# colcon build --symlink-install --event-handlers console_direct+
 source install/setup.bash
 ```

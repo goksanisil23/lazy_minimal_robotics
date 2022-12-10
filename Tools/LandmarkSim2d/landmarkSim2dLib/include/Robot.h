@@ -14,6 +14,8 @@ namespace landmarkSim2D
 
 constexpr float SIGMA_LANDMARK_RANGE   = 0.2f; // landmark measurement range uncertainty (m.)
 constexpr float SIGMA_LANDMARK_BEARING = 1.0f; // landmark measurement bearing uncertainty (deg.)
+constexpr float SIGMA_CONTROL_LIN_VEL  = 1.0f; // control input measurement uncertainty (m/s)
+constexpr float SIGMA_CONTROL_ANG_VEL  = 1.0f; // control input measurement uncertainty (deg/s)
 
 struct ControlInput
 {
@@ -31,21 +33,24 @@ struct ControlInput
 class Robot
 {
   public:
-    ControlInput controlInput;
+    ControlInput trueControlInput_;
+    ControlInput measuredControlInput_;
 
     Robot(const Pose2D &initPose, const Map &map);
 
     void Act(const float &dt);
     void Sense();
 
-    void MoveWithControlInput(const float &dt);
-    void GenerateLandmarkObservations();
-    void DetectLandmarksWithNoise();
+    Pose2D       IterateMotionModel(const Pose2D &prevPose, const float &dt, const ControlInput &controlInput);
+    void         GenerateLandmarkObservations();
+    void         DetectLandmarksWithNoise();
+    ControlInput MeasureControlInputWithNoise();
+    float        GetSensorRange() const;
 
-    float GetSensorRange() const;
+    Pose2D truePose_;
+    Pose2D drPose_; // deadreckon pose
 
-    Pose2D                       pose;
-    std::vector<RangeBearingObs> observedLandmarks;
+    std::vector<RangeBearingObs> observedLandmarks_;
 
   private:
     Map   map_;
@@ -55,6 +60,8 @@ class Robot
     std::default_random_engine      randGen_;
     std::normal_distribution<float> noiseRange_;
     std::normal_distribution<float> noiseBearing_;
+    std::normal_distribution<float> noiseCtrlLinVel_;
+    std::normal_distribution<float> noiseCtrlAngVel_;
 };
 
 } // namespace landmarkSim2D
