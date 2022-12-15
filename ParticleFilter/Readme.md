@@ -4,7 +4,7 @@
 
 
 - robot odometry to propagate the motion of each particle:
-    - (previous particle state) + (odometry) + noise
+    - (previous particle state) + (noisy_ctrl_input * motion_model = dead_reckon) + exploration_noise
 - assign weights to particles based on how closely the current range sensor measurements match with
 the expected range sensor measurements of the particles.
     - expected range measurements of the particles are measured using the propagated particle state + map of the environment
@@ -13,19 +13,19 @@ the expected range sensor measurements of the particles.
 
 - At the end, determine the robot state estimate by taking average of all particle states.
 
-
-* for sensor sim: instead of running raycasting, check if the landmark is within the radius of the particle/vehicle.
-    * transform the detections in the particle coordinate system to map coordinate system
-    * 
-
-
 * when the robot observes the landmarks in robot frame with the sensor:
-    1) use that particle's "predicted state" (obtained with motion model), to transform the robot-frame landmark to map-frame landmark.
-    2) since the particle is in map frame, it already has a view of which landmarks can be observed from that state,
+    1) Find all landmarks within the particle's range, using the map info and particle's predicted state (obtained with motion model).
+    2) use the particle's "predicted state" , to transform the robot-frame landmark observation to map-frame landmark observation.
+    3) since the particle is in map frame, it already has a view of which landmarks can be observed from that state,
     and most importantly, #the unique id of the landmark#
-    - associate the observed landmark (1) to predicted landmark (2) by nearest neighbor.
-        - this will also assign a landmark id to the observed landmark.
-    - assign the weight for each particle based on the distance between the associated landmark distances of predicted and observed cases.
+    - associate the observed landmark (1) to predicted landmark (2) by nearest neighbor. (since both are in map frame now)
+        - this will also assign a landmark id to the observed landmark. --> main purpose: giving map landmark id to observation
+    - each observation will contribute to the weight of that particle:
+    - for obs in observations:
+        - weight_particle *= MLE(distance(particle_landmark_predict, robot_landmark_observed)). 
+            a) multivariate gaussian dist
+            b) w = w * gauss_likelihood(dz, math.sqrt(Q=0.2**2)) --> Q=uncertainty of landmark
+    - right after weight update, resample the particles
 
 
 * next stage: pole detection from the lidar pointcloud to derive the landmarks

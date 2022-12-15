@@ -1,5 +1,7 @@
 #include "Map.h"
 
+#include <limits>
+
 namespace landmarkSim2D
 {
 
@@ -62,6 +64,34 @@ void Map::DumpMapToFile(const std::string &outputFileName)
     }
 
     mapFile.close();
+}
+
+Map::BboxExtent Map::GetBoundingExtentOfMap()
+{
+    float low_x  = std::numeric_limits<float>::max();
+    float low_y  = std::numeric_limits<float>::max();
+    float high_x = -std::numeric_limits<float>::max();
+    float high_y = -std::numeric_limits<float>::max();
+
+    for (const auto &landmark : landmarks)
+    {
+        if (landmark.posX < low_x)
+            low_x = landmark.posX;
+        if (landmark.posY < low_y)
+            low_y = landmark.posY;
+        if (landmark.posX > high_x)
+            high_x = landmark.posX;
+        if (landmark.posY > high_y)
+            high_y = landmark.posY;
+    }
+
+    return Map::BboxExtent{low_x, low_y, high_x, high_y};
+}
+
+float Map::Landmark::Distance2(const Landmark &otherLandmark) const
+{
+    return (this->posX - otherLandmark.posX) * (this->posX - otherLandmark.posX) +
+           (this->posY - otherLandmark.posY) * (this->posY - otherLandmark.posY);
 }
 
 } // namespace landmarkSim2D

@@ -10,6 +10,7 @@ find_package(rclcpp REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(landmarksim2d_msgs REQUIRED)
 find_package(landmarkSim2dLib REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
 add_executable(${CMAKE_PROJECT_NAME} 
   src/particle_filter_node.cpp
@@ -20,7 +21,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC
 
 target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
-ament_target_dependencies(${CMAKE_PROJECT_NAME} rclcpp nav_msgs landmarksim2d_msgs std_msgs)
+ament_target_dependencies(${CMAKE_PROJECT_NAME} rclcpp nav_msgs landmarksim2d_msgs std_msgs visualization_msgs)
 target_link_libraries(${CMAKE_PROJECT_NAME} landmarkSim2dLib)
 
 install(TARGETS ${CMAKE_PROJECT_NAME}

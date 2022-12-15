@@ -23,5 +23,6 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [ ] Dense Reconstruction via Multi-View Stereo
 - [ ] Factor graph object tracking
 - [ ] Occupancy Grid
-- [ ] Single & Multi object tracking
+- [ ] Single & Multi object tracking --> tracking nba players in a video sequence?
 - [ ] Optimal Assignment (hungarian algo)
+- [ ] Homography to place country flag into swimming lanes which are planar.

@@ -4,10 +4,10 @@
 
 namespace landmarkSim2D
 {
-Robot::Robot(const Pose2D &initPose, const Map &map) : truePose_(initPose), map_(map)
+
+Robot::Robot(const Pose2D &initPose, const Map &map) : truePose_(initPose), map_(map), sensorRange_{SENSOR_RANGE}
 {
-    drPose_      = truePose_;
-    sensorRange_ = 3.0f;
+    drPose_ = truePose_;
 
     noiseRange_      = std::normal_distribution<float>{0.0f, SIGMA_LANDMARK_RANGE};
     noiseBearing_    = std::normal_distribution<float>{0.0f, SIGMA_LANDMARK_BEARING * M_PI / 180.0};
@@ -76,9 +76,9 @@ void Robot::Sense()
     DetectLandmarksWithNoise();
 }
 
-float Robot::GetSensorRange() const
+float Robot::GetSensorRange()
 {
-    return sensorRange_;
+    return SENSOR_RANGE;
 }
 
 } // namespace landmarkSim2D
