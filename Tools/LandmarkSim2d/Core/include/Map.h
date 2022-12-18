@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <math.h>
+#include <random>
 #include <sstream>
 #include <vector>
 
@@ -32,6 +33,7 @@ class Map
 
     struct BboxExtent
     {
+        BboxExtent() = default;
         explicit BboxExtent(const float &lowX, const float &lowY, const float &highX, const float &highY)
             : lowX{lowX}, lowY{lowY}, highX{highX}, highY{highY}
         {
@@ -50,5 +52,8 @@ class Map
 
     // Variables
     std::vector<Landmark> landmarks;
+
+  private:
+    std::default_random_engine randGenEngine_;
 };
 } // namespace landmarkSim2D

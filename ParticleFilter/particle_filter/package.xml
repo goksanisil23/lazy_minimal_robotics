@@ -15,7 +15,7 @@
   <depend>visualization_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>landmarksim2d_msgs</depend>
-  <depend>landmarkSim2dLib</depend>
+  <depend>LandmarkSim2dLib</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

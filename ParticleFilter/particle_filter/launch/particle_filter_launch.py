@@ -31,6 +31,8 @@ def generate_launch_description():
         on_exit=Shutdown(),
         package='landmark_sim_2d_vis',
         parameters=[],
+        emulate_tty=True,
+        output='screen',
         remappings=[])
 
     rviz_cfg_path = os.path.join(get_package_share_directory('particle_filter'),

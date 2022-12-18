@@ -15,11 +15,18 @@ Robot::Robot(const Pose2D &initPose, const Map &map) : truePose_(initPose), map_
     noiseCtrlAngVel_ = std::normal_distribution<float>{0.0f, SIGMA_CONTROL_ANG_VEL * M_PI / 180.0};
 }
 
+ControlInput Robot::GenerateCircularControlInput()
+{
+    ControlInput ctrlInput;
+    ctrlInput.angularVel = 0.1;
+    ctrlInput.linearVel  = trueControlInput_.angularVel * (25.0 / 2.0); // v = w*R
+    return ctrlInput;
+}
+
 void Robot::Act(const float &dt)
 {
     // Generate control input
-    trueControlInput_.angularVel = 0.1;
-    trueControlInput_.linearVel  = trueControlInput_.angularVel * (25.0 / 2.0); // v = w*R
+    trueControlInput_ = ControlInput{GenerateCircularControlInput()};
 
     measuredControlInput_ = MeasureControlInputWithNoise();
 
@@ -50,10 +57,11 @@ void Robot::DetectLandmarksWithNoise()
         RangeBearingObs observation;
         float           angleToLandmark =
             atan2(landmarkInRange.posY - truePose_.posY, landmarkInRange.posX - truePose_.posX) - truePose_.yawRad;
-        observation.angleRad = angleToLandmark + noiseBearing_(randGen_); // add noise
-        observation.range    = sqrt((landmarkInRange.posY - truePose_.posY) * (landmarkInRange.posY - truePose_.posY) +
+        observation.angleRad = angleToLandmark;
+        // observation.angleRad += noiseBearing_(randGen_); // add noise
+        observation.range = sqrt((landmarkInRange.posY - truePose_.posY) * (landmarkInRange.posY - truePose_.posY) +
                                  (landmarkInRange.posX - truePose_.posX) * (landmarkInRange.posX - truePose_.posX));
-        observation.range += noiseRange_(randGen_); // add noise
+        // observation.range += noiseRange_(randGen_); // add noise
         observation.id = obsId;
 
         observedLandmarks_.push_back(observation);

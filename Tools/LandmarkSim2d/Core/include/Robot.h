@@ -17,7 +17,8 @@ constexpr float SIGMA_LANDMARK_BEARING = 1.0f; // landmark measurement bearing u
 constexpr float SIGMA_CONTROL_LIN_VEL  = 1.0f; // control input measurement uncertainty (m/s)
 constexpr float SIGMA_CONTROL_ANG_VEL  = 1.0f; // control input measurement uncertainty (deg/s)
 
-constexpr float SENSOR_RANGE = 3.0f;
+// constexpr float SENSOR_RANGE = 3.0f;
+constexpr float SENSOR_RANGE = 6.0f;
 
 struct ControlInput
 {
@@ -49,6 +50,7 @@ class Robot
     void         DetectLandmarksWithNoise();
     ControlInput MeasureControlInputWithNoise();
     static float GetSensorRange();
+    ControlInput GenerateCircularControlInput();
 
     Pose2D truePose_;
     Pose2D drPose_; // deadreckon pose

@@ -22,6 +22,9 @@ Map::Map(const std::string &mapFilePath)
 
 void Map::GenerateCircularLandmarks(const float &radius, const float &angleIntervalRad)
 {
+    std::uniform_real_distribution<float> uniformDist(-radius / 5.0,
+                                                      radius / 5.0); // limit the randomness to 10% of the radius
+
     int16_t numLandmarks = 2 * M_PI / angleIntervalRad;
 
     for (int16_t lmIdx = 0; lmIdx < numLandmarks; lmIdx++)
@@ -29,6 +32,12 @@ void Map::GenerateCircularLandmarks(const float &radius, const float &angleInter
         float angleLm = lmIdx * angleIntervalRad;
         float xLm     = radius * cos(angleLm);
         float yLm     = radius * sin(angleLm);
+
+        // Add some randomness to break the even pattern
+        {
+            xLm += uniformDist(randGenEngine_);
+            yLm += uniformDist(randGenEngine_);
+        }
 
         Landmark lm(lmIdx, xLm, yLm);
         landmarks.push_back(lm);

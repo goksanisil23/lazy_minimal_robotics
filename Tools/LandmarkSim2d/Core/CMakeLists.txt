@@ -2,12 +2,14 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-project (landmarkSim2dLib)
-
-set(CMAKE_BUILD_TYPE Release)
+project (LandmarkSim2dLib)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wall -Wextra -Wpedantic -O3)
+endif()
+
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
 endif()
 
 add_library(${PROJECT_NAME} SHARED 

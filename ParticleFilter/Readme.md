@@ -1,3 +1,16 @@
+# Particle Filter
+Probability distribution through samples (particles)
+Just like Kalman filter, uses prediction and correction.
+Prediction: E.g. (motion model and control commands) + exploration noise
+    This noise is to account for the wrongness of the motion model and control input, and basically randomly exploring the vicinity to correct for such errors.
+Correction: e.g. sensor measurements. Given that my robot is where this particle is, how likely is it to obtain particle's observation, given the robot's observation.
+Based on this likeliness, the particle receives an importance weight.
+Resampling = survival of the fittest.
+
+
+## Recovery
+It is not guaranteed that the particle filter will converge to the global solution, nor recover from global localization failures. After some duration, particles converge around a single pose and unable to recover if this happens to be incorrect. As particle filter is a stochastic algorithm, it may accidentally discard the correct particles during the resampling step. This is most likely when number of particles are small, or when the map is relatively large.
+
 1) using landmarks, where we exactly know where the landmark is on the map
 2) using raycasted lidar detections in a maze-like map
 

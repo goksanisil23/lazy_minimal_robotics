@@ -7,8 +7,10 @@
 template <class T>
 class TSQueue
 {
-public:
-    TSQueue() : queue_(), m_(), cond_(), queue_size_limit_{20} {}
+  public:
+    TSQueue() : queue_(), m_(), cond_(), queue_size_limit_{20}
+    {
+    }
 
     // ~TSQueue() {};
 
@@ -38,9 +40,9 @@ public:
         queue_.pop();
     }
 
-private:
-    std::queue<T> queue_;
-    std::mutex m_;
+  private:
+    std::queue<T>           queue_;
+    std::mutex              m_;
     std::condition_variable cond_;
-    const uint8_t queue_size_limit_; // to avoid the buffer growing too big
+    const uint8_t           queue_size_limit_; // to avoid the buffer growing too big
 };

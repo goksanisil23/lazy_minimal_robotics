@@ -11,6 +11,7 @@ ament_auto_find_build_dependencies()
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RangeBearingObsMsg.msg"
   "msg/ControlInputMeasMsg.msg"
+  "srv/Map.srv"
   DEPENDENCIES
     "builtin_interfaces" "std_msgs"
   ADD_LINTER_TESTS

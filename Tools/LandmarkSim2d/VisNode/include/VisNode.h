@@ -5,6 +5,7 @@
 
 #include "landmarksim2d_msgs/msg/control_input_meas_msg.hpp"
 #include "landmarksim2d_msgs/msg/range_bearing_obs_msg.hpp"
+#include "landmarksim2d_msgs/srv/map.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "tf2/LinearMath/Quaternion.h"
@@ -12,12 +13,15 @@
 #include "visualization_msgs/msg/marker.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 
-#include <landmarkSim2dLib/Sim.h>
+#include <LandmarkSim2dLib/Sim.h>
 
 using namespace std::chrono_literals;
 
 namespace landmarkSim2D
 {
+constexpr uint32_t ROBOT_MOTION_PERIOD_MS  = 100;
+constexpr uint32_t ROBOT_SENSING_PERIOD_MS = 100;
+
 class VisNode : public rclcpp::Node
 {
   public:
@@ -33,6 +37,8 @@ class VisNode : public rclcpp::Node
     void PublishObservations(const std::vector<RangeBearingObs> &landmarkObservations);
     void ShowObservations(const std::vector<RangeBearingObs> &landmarkObservations, const Pose2D &robotPose);
     void ShowRobotFov(const Pose2D &robotPose, const float &sensorRange);
+    void MapServerHandler(const std::shared_ptr<landmarksim2d_msgs::srv::Map::Request>  mapRequest,
+                          const std::shared_ptr<landmarksim2d_msgs::srv::Map::Response> mapResponse);
 
     std::unique_ptr<Sim> landmarkSim_;
 
@@ -49,6 +55,8 @@ class VisNode : public rclcpp::Node
 
     rclcpp::Publisher<landmarksim2d_msgs::msg::RangeBearingObsMsg>::SharedPtr  landmarkObsPublisher_;
     rclcpp::Publisher<landmarksim2d_msgs::msg::ControlInputMeasMsg>::SharedPtr ctrlInMeasPublisher_;
+
+    rclcpp::Service<landmarksim2d_msgs::srv::Map>::SharedPtr mapServer_;
 
     visualization_msgs::msg::MarkerArray landmarkMapMarkers_;
 };

@@ -1,5 +1,7 @@
 #include "VisNode.h"
 
+#include <functional>
+
 namespace landmarkSim2D
 {
 
@@ -10,8 +12,10 @@ VisNode::VisNode() : Node("landmark_sim_2d")
     // Create Sim object
     landmarkSim_ = std::make_unique<Sim>();
 
-    robot_motion_timer_      = create_wall_timer(10ms, std::bind(&VisNode::MotionTimerCallback, this));
-    robot_observation_timer_ = create_wall_timer(100ms, std::bind(&VisNode::ObservationTimerCallback, this));
+    robot_motion_timer_      = create_wall_timer(std::chrono::milliseconds(ROBOT_MOTION_PERIOD_MS),
+                                            std::bind(&VisNode::MotionTimerCallback, this));
+    robot_observation_timer_ = create_wall_timer(std::chrono::milliseconds(ROBOT_SENSING_PERIOD_MS),
+                                                 std::bind(&VisNode::ObservationTimerCallback, this));
 
     truePosePublisher_ = this->create_publisher<nav_msgs::msg::Odometry>("gt_odom", rclcpp::SensorDataQoS());
     estPosePublisher_  = this->create_publisher<nav_msgs::msg::Odometry>("est_odom", rclcpp::SensorDataQoS());
@@ -26,6 +30,20 @@ VisNode::VisNode() : Node("landmark_sim_2d")
         this->create_publisher<landmarksim2d_msgs::msg::RangeBearingObsMsg>("landmark_obs", rclcpp::SensorDataQoS());
     ctrlInMeasPublisher_ =
         this->create_publisher<landmarksim2d_msgs::msg::ControlInputMeasMsg>("ctrl_in_meas", rclcpp::SensorDataQoS());
+
+    mapServer_ = this->create_service<landmarksim2d_msgs::srv::Map>(
+        "map_service", std::bind(&VisNode::MapServerHandler, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+void VisNode::MapServerHandler(const std::shared_ptr<landmarksim2d_msgs::srv::Map::Request>  mapRequest,
+                               const std::shared_ptr<landmarksim2d_msgs::srv::Map::Response> mapResponse)
+{
+    RCLCPP_INFO(this->get_logger(), "Received map request");
+    if (mapRequest->map_request)
+    {
+        mapResponse->map_available = true;
+        mapResponse->map_path      = landmarkSim2D::MAP_PATH;
+    }
 
     PublishLandmarkMarkers(landmarkSim_->map->landmarks);
 }
@@ -162,9 +180,9 @@ void VisNode::ShowObservations(const std::vector<RangeBearingObs> &landmarkObser
     obsMarkerLines.scale.y = 0.1;
     obsMarkerLines.scale.z = 0.1;
     obsMarkerLines.color.a = 1.0;
-    obsMarkerLines.color.r = 0.0;
-    obsMarkerLines.color.g = 0.0;
-    obsMarkerLines.color.b = 1.0;
+    obsMarkerLines.color.r = 1.0;
+    obsMarkerLines.color.g = 1.0;
+    obsMarkerLines.color.b = 0.2;
 
     // Generate lines
     for (const auto &lmObs : landmarkObservations)

@@ -1,0 +1,4 @@
+bool map_request
+---
+bool map_available
+string map_path
