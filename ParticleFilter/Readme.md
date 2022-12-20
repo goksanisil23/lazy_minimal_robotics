@@ -1,7 +1,9 @@
 # Particle Filter
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_main.gif" width=30% height=30%>[Kalman filter](../KalmanFilter) and [it's variants](../ExtendedKalmanFilter) work well when the motion (process) model is **not highly non-linear** and the **process & measurement noises can be approximated nearly Gaussian**. However for arbitrary distributions, a non-parametric representation where probability distribution is obtained through samples (particles) instead can be better suited.
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_main.gif" width=30% height=30%>
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/prob_dist_approx.png" width=25% height=25%>
+[Kalman filter](../KalmanFilter) and [it's variants](../ExtendedKalmanFilter) work well when the motion (process) model is **not highly non-linear** and the **process & measurement noises can be approximated nearly Gaussian**. However for arbitrary distributions, a non-parametric representation where probability distribution is obtained through samples (particles) instead can be better suited.
+
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/prob_dist_approx.png" width=20% height=20%>
 
 To represent the probability distribution of the states, a set of weighted samples each of which represent a state hypothesis is used.
 
