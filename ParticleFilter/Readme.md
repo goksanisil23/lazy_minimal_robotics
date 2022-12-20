@@ -1,13 +1,13 @@
 # Particle Filter
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_main.gif" width=30% height=30%>
 
-[Kalman filter](../KalmanFilter) and [it's variants](../ExtendedKalmanFilter) work well when the motion (process) model is **not highly non-linear** and the **process & measurement noises can be approximated nearly Gaussian**. However for arbitrary distributions, a non-parametric representation where probability distribution is obtained through samples (particles) instead can be better suited.
+[Kalman filter](../KalmanFilter) and [its variants](../ExtendedKalmanFilter) work well when the motion (process) model is **not highly non-linear** and the **process & measurement noises can be approximated nearly Gaussian**. However for arbitrary distributions, a non-parametric representation where probability distribution is obtained through samples (particles) instead can be better suited.
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/prob_dist_approx.png" width=20% height=20%>
 
 To represent the probability distribution of the states, a set of weighted samples each of which represent a state hypothesis is used.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/prob_dist_eq.png" width=25% height=25%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/prob_dist_eq.png" width=35% height=35%>
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/monte_carlo_approx.png" width=25% height=25%>
 
 ## Importance sampling for Resampling
@@ -21,7 +21,8 @@ Intuitively, weight assignment can be seen as **survival of the fittest**: *weig
 > Particle filter, just like Kalman filter, is still a Bayesian filter, which means the state estimation is performed by combining a prior state probability (iteration with motion model) with a statistical model for a measurement (likelihood).
 
 **Prediction:** motion model and control commands + exploration noise. 
-*This noise is to account for the wrongness of the motion model and control input, and basically randomly exploring the vicinity to correct for such errors.*
+*This noise is to account for the wrongness of the motion model and control input, and basically randomly exploring the vicinity to account for such errors.*
+
 **Correction:** sensor measurements. Given that my robot would be where this particle is, how likely is it to obtain particle's observation, given the robot's observation.
 Based on this likeliness, the particle receives an importance weight.
 
@@ -57,7 +58,7 @@ The "exploration" phase of the particles and the resampling through robot observ
 ## Shortcomings
 It is not guaranteed that the particle filter will converge to the global solution, nor recover from global localization failures. After some duration, particles converge around a single pose and unable to recover if this happens to be incorrect. As particle filter is a stochastic algorithm, it may accidentally discard the correct particles during the resampling step. This is most likely when number of particles are small or insufficient diversification under relatively low process variance (exploration factor) or when the map is relatively large.
 
-In the recovery example below, we're just resetting the filter to it's initial conditions where particles are randomly distributed within the map.
+In the recovery example below, we're resetting the filter to it's initial conditions where particles are randomly distributed within the map, if the average belief error of all particles are above certain threshold for N successive iterations.
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_reset.gif" width=30% height=30%>
 

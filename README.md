@@ -1,4 +1,7 @@
 # Lazy Minimal Robotics
+
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/cover_particle_filt.png" width=20% height=20%>
+
 Minimal implementations for personally interesting ideas &amp; algorithms that can be useful for robotics applications, in C/C++.
 
 ### Menu
@@ -10,7 +13,6 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [x] [Kalman Filter](/KalmanFilter)
 - [x] [Extended Kalman Filter](/ExtendedKalmanFilter)
 - [x] [Unscented Kalman Filter](/UnscentedKalmanFilter)
-- [ ] Iterated Kalman Filter
 - [x] [Particle filter](/ParticleFilter)
 - [x] [ICP](/ICP)
 - [x] [Indirect Monocular Visual Odometry with SIFT/ORB features](/VisualOdometry/Indirect/matching)
