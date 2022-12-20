@@ -12,12 +12,10 @@ Sim::Sim()
     float bigCircleRadius   = 15.0;
     // float smallCircleLmAngleIntervalDeg = 3.0;
     // float bigCircleLmAngleIntervalDeg   = 5.0;
-    // float smallCircleLmAngleIntervalDeg = 6.0;
-    // float bigCircleLmAngleIntervalDeg   = 10.0;
+    float smallCircleLmAngleIntervalDeg = 6.0;
+    float bigCircleLmAngleIntervalDeg   = 10.0;
     // float smallCircleLmAngleIntervalDeg = 9.0;
     // float bigCircleLmAngleIntervalDeg   = 15.0;
-    float smallCircleLmAngleIntervalDeg = 15.0;
-    float bigCircleLmAngleIntervalDeg   = 20.0;
 
     map = std::make_shared<Map>();
     map->GenerateCircularLandmarks(smallCircleRadius, smallCircleLmAngleIntervalDeg * M_PI / 180.0);

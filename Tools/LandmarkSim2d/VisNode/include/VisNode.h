@@ -20,10 +20,8 @@ using namespace std::chrono_literals;
 
 namespace landmarkSim2D
 {
-// constexpr uint32_t ROBOT_MOTION_PERIOD_MS  = 100;
-// constexpr uint32_t ROBOT_SENSING_PERIOD_MS = 100;
-constexpr uint32_t ROBOT_MOTION_PERIOD_MS  = 400;
-constexpr uint32_t ROBOT_SENSING_PERIOD_MS = 400;
+constexpr uint32_t ROBOT_MOTION_PERIOD_MS  = 100;
+constexpr uint32_t ROBOT_SENSING_PERIOD_MS = 100;
 
 class VisNode : public rclcpp::Node
 {
