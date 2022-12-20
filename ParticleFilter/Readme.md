@@ -65,11 +65,8 @@ In uniform looking environments, robot's observations will be very similarly ass
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_uniform_map.gif" width=30% height=30%>
 
-
-1) using landmarks, where we exactly know where the landmark is on the map
-2) using raycasted lidar detections in a maze-like map
-
-* next stage: pole detection from the lidar pointcloud to derive the landmarks
+### Todo
+* pole detection from the lidar pointcloud to derive the landmarks
 * using raycasted lidar detections in a maze-like map --> instead of doing 1-to-1 matching, do pattern matching of landmarks
 
 ## References

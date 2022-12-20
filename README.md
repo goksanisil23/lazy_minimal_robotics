@@ -11,7 +11,7 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [x] [Extended Kalman Filter](/ExtendedKalmanFilter)
 - [x] [Unscented Kalman Filter](/UnscentedKalmanFilter)
 - [ ] Iterated Kalman Filter
-- [ ] Particle filter (object tracking)
+- [x] [Particle filter](/ParticleFilter)
 - [x] [ICP](/ICP)
 - [x] [Indirect Monocular Visual Odometry with SIFT/ORB features](/VisualOdometry/Indirect/matching)
 - [x] [Indirect Monocular Visual Odometry with Sparse Optical Flow](/VisualOdometry/Indirect/tracking)
