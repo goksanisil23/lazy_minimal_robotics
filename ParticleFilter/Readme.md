@@ -3,12 +3,12 @@
 
 [Kalman filter](../KalmanFilter) and [it's variants](../ExtendedKalmanFilter) work well when the motion (process) model is **not highly non-linear** and the **process & measurement noises can be approximated nearly Gaussian**. However for arbitrary distributions, a non-parametric representation where probability distribution is obtained through samples (particles) instead can be better suited.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/prob_dist_approx.png" width=50% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/prob_dist_approx.png" width=25% height=25%>
 
 To represent the probability distribution of the states, a set of weighted samples each of which represent a state hypothesis is used.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/prob_dist_eq.png" width=50% height=50%>
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/monte_carlo_approx.png" width=50% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/prob_dist_eq.png" width=25% height=25%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/monte_carlo_approx.png" width=25% height=25%>
 
 ## Importance sampling for Resampling
 - Goal: Generating samples from *target distribution (f)* (pdf of our robot's state)
@@ -40,7 +40,7 @@ This example is using the known map of the environment, noisy odometry info and 
 - At the end, determine the robot state estimate by taking average of all particle states.
 
 The "exploration" phase of the particles and the resampling through robot observations become more clear when filter prediction step is 10x compared to sensor update step:
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_convergence.gif" width=100% height=100%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_convergence.gif" width=50% height=50%>
 
 - When the robot observes the landmarks in robot frame with the sensor:
     1. Find all landmarks within the particle's range, using the map info and particle's predicted state (obtained with motion model).
@@ -58,11 +58,11 @@ It is not guaranteed that the particle filter will converge to the global soluti
 
 In the recovery example below, we're just resetting the filter to it's initial conditions where particles are randomly distributed within the map.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_reset.gif" width=100% height=100%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_reset.gif" width=50% height=50%>
 
 In uniform looking environments, robot's observations will be very similarly associated to particle predictions in different parts of the map, which can lead the filter to converge to a local-minima.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_uniform_map.gif" width=100% height=100%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_uniform_map.gif" width=50% height=50%>
 
 
 1) using landmarks, where we exactly know where the landmark is on the map
