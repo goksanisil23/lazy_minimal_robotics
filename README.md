@@ -1,9 +1,7 @@
 # Lazy Minimal Robotics
-<p align="right">
-    <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_convergence.gif" alt="Image" width=20% height=20% />
-</p><p align="right">
-    <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ICP/3D/resources/3d_point_to_plane.gif" alt="Image" width=20% height=20% />
-</p>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_convergence.gif" width=20% height=20%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ICP/3D/resources/3d_point_to_plane.gif" width=20% height=20%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/sfm_before_after.png" width=30% height=30%>
 
 Minimal implementations for personally interesting ideas &amp; algorithms that can be useful for robotics applications, in C/C++.
 
