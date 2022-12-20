@@ -2,6 +2,8 @@
 
 #include <functional>
 
+#include <tf2/transform_datatypes.h>
+
 namespace landmarkSim2D
 {
 
@@ -30,9 +32,9 @@ VisNode::VisNode() : Node("landmark_sim_2d")
         this->create_publisher<landmarksim2d_msgs::msg::RangeBearingObsMsg>("landmark_obs", rclcpp::SensorDataQoS());
     ctrlInMeasPublisher_ =
         this->create_publisher<landmarksim2d_msgs::msg::ControlInputMeasMsg>("ctrl_in_meas", rclcpp::SensorDataQoS());
-
     mapServer_ = this->create_service<landmarksim2d_msgs::srv::Map>(
         "map_service", std::bind(&VisNode::MapServerHandler, this, std::placeholders::_1, std::placeholders::_2));
+    trueTfPublisher_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 }
 
 void VisNode::MapServerHandler(const std::shared_ptr<landmarksim2d_msgs::srv::Map::Request>  mapRequest,
@@ -81,12 +83,12 @@ void VisNode::PublishLandmarkMarkers(const std::vector<Map::Landmark> &mapLandma
     landmarkMarker.type            = visualization_msgs::msg::Marker::CYLINDER;
     landmarkMarker.action          = visualization_msgs::msg::Marker::ADD;
     landmarkMarker.lifetime        = rclcpp::Duration::from_nanoseconds(0); // forever
-    landmarkMarker.scale.x         = 0.05;
-    landmarkMarker.scale.y         = 0.05;
+    landmarkMarker.scale.x         = 0.1;
+    landmarkMarker.scale.y         = 0.1;
     landmarkMarker.scale.z         = 0.2;
     landmarkMarker.color.a         = 1.0;
-    landmarkMarker.color.r         = 0.0;
-    landmarkMarker.color.g         = 1.0;
+    landmarkMarker.color.r         = 1.0;
+    landmarkMarker.color.g         = 0.0;
     landmarkMarker.color.b         = 0.0;
 
     int16_t lmIdx = 0;
@@ -146,6 +148,16 @@ void VisNode::PublishTruePose(const landmarkSim2D::Pose2D &robotPose)
     gtOdom.pose.pose.orientation = tf2::toMsg(quat);
 
     truePosePublisher_->publish(gtOdom);
+
+    // send tf
+    geometry_msgs::msg::TransformStamped tfTrue;
+    tfTrue.header                  = gtOdom.header;
+    tfTrue.child_frame_id          = gtOdom.child_frame_id;
+    tfTrue.transform.translation.x = robotPose.posX;
+    tfTrue.transform.translation.y = robotPose.posY;
+    tfTrue.transform.translation.z = 0;
+    tf2::convert(quat, tfTrue.transform.rotation);
+    trueTfPublisher_->sendTransform(tfTrue);
 }
 
 void VisNode::PublishDrPose(const landmarkSim2D::Pose2D &robotPose)

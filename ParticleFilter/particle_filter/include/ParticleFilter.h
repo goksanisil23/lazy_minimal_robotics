@@ -14,18 +14,18 @@ class ParticleFilter
     struct Particle
     {
         Particle() = default;
-        explicit Particle(const int16_t &id, const landmarkSim2D::Pose2D &pose, const float &weight)
+        explicit Particle(const int16_t &id, const landmarkSim2D::Pose2D &pose, const double &weight)
             : id{id}, pose{pose}, weight{weight}
         {
         }
 
         int16_t               id;
         landmarkSim2D::Pose2D pose;
-        float                 weight;
-        float beliefError2{0}; // avg. Eucledian SQUARED distance between particle landmark belief vs robot observation
+        double                weight;
+        double beliefError2{0}; // avg. Eucledian SQUARED distance between particle landmark belief vs robot observation
     };
 
-    ParticleFilter(const std::string &mapFilePath, const int16_t &numParticles, const float &sensorRange);
+    ParticleFilter(const std::string &mapFilePath, const int16_t &numParticles, const double &sensorRange);
     void PredictAndExplore(const landmarkSim2D::ControlInput &ctrlInput, const double &dt);
     void UpdateWeightsWithObservations(const std::vector<landmarkSim2D::RangeBearingObs> &landmarkObservations);
     void UpdateWeightsWithObservations2(const std::vector<landmarkSim2D::RangeBearingObs> &landmarkObservations);
@@ -61,8 +61,8 @@ class ParticleFilter
     void                                        CheckFilterReset();
     void                                        ResetFilter();
 
-    std::vector<Particle>                             particles_;
-    std::multimap<float, size_t, std::greater<float>> bestParticles_; // Top 10 % of the particles by weight
+    std::vector<Particle>                               particles_;
+    std::multimap<double, size_t, std::greater<double>> bestParticles_; // Top 10 % of the particles by weight
 
   private:
     std::unique_ptr<landmarkSim2D::Map> map_;
@@ -72,11 +72,14 @@ class ParticleFilter
     std::random_device randDev_{};
     std::mt19937       randGenEngine_{randDev_()};
 
-    float sigmaPosX_; // standard dev for the exploration noise [m]
-    float sigmaPosY_; // standard dev for the exploration noise [m]
-    float sigmaYaw_;  // standard dev for the exploration noise [m]
+    double sigmaPosX_; // standard dev for the exploration noise [m]
+    double sigmaPosY_; // standard dev for the exploration noise [m]
+    double sigmaYaw_;  // standard dev for the exploration noise [m]
 
-    float sensorRange_;
-    float avgBeliefError2_; // average squared belief error of all particles
-    float filterResetThresh2_;
+    double sigmaFilterX_; // sigma used in weight update
+    double sigmaFilterY_;
+
+    double sensorRange_;
+    double avgBeliefError2_; // average squared belief error of all particles
+    double filterResetThresh2_;
 };

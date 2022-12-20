@@ -12,7 +12,7 @@
 namespace landmarkSim2D
 {
 
-constexpr float SIGMA_LANDMARK_RANGE   = 0.2f; // landmark measurement range uncertainty (m.)
+constexpr float SIGMA_LANDMARK_RANGE   = 0.1f; // landmark measurement range uncertainty (m.)
 constexpr float SIGMA_LANDMARK_BEARING = 1.0f; // landmark measurement bearing uncertainty (deg.)
 constexpr float SIGMA_CONTROL_LIN_VEL  = 1.0f; // control input measurement uncertainty (m/s)
 constexpr float SIGMA_CONTROL_ANG_VEL  = 1.0f; // control input measurement uncertainty (deg/s)
@@ -51,6 +51,7 @@ class Robot
     ControlInput MeasureControlInputWithNoise();
     static float GetSensorRange();
     ControlInput GenerateCircularControlInput();
+    ControlInput GenerateSinusoidalControlInput(const float &dt);
 
     Pose2D truePose_;
     Pose2D drPose_; // deadreckon pose

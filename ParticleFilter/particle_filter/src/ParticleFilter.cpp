@@ -2,18 +2,28 @@
 
 #include "TimeUtil.h"
 
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <iomanip>
 
-ParticleFilter::ParticleFilter(const std::string &mapFilePath, const int16_t &numParticles, const float &sensorRange)
-    // : sigmaPosX_{0.3}, sigmaPosY_{0.3}, sigmaYaw_{0.01}, sensorRange_{sensorRange}
-    // : sigmaPosX_{0.04}, sigmaPosY_{0.04}, sigmaYaw_{0.01}, sensorRange_{sensorRange}
-    : sigmaPosX_{0.15}, sigmaPosY_{0.15}, sigmaYaw_{0.04}, sensorRange_{sensorRange}, avgBeliefError2_{0}
+namespace
+{
+// after how many iterations of large particle error should the filter reset
+const size_t kFilterResetCtrLimit{20};
+} // namespace
+
+ParticleFilter::ParticleFilter(const std::string &mapFilePath, const int16_t &numParticles, const double &sensorRange)
+    : sigmaPosX_{0.3}, sigmaPosY_{0.3}, sigmaYaw_{0.01}, sensorRange_{sensorRange}
+// : sigmaPosX_{0.04}, sigmaPosY_{0.04}, sigmaYaw_{0.01}, sensorRange_{sensorRange}
+// : sigmaPosX_{0.15}, sigmaPosY_{0.15}, sigmaYaw_{0.04}, sensorRange_{sensorRange}, avgBeliefError2_{0}
 {
     map_                = std::make_unique<landmarkSim2D::Map>(mapFilePath);
     mapExtent_          = map_->GetBoundingExtentOfMap();
     particles_          = std::vector<Particle>(numParticles);
     filterResetThresh2_ = std::pow(sensorRange_ * 0.5, 2);
+    sigmaFilterX_       = sigmaPosX_;
+    sigmaFilterY_       = sigmaPosY_;
     ResetFilter();
 }
 
@@ -50,9 +60,9 @@ void ParticleFilter::PredictAndExplore(const landmarkSim2D::ControlInput &ctrlIn
         landmarkSim2D::Pose2D predictedPose = landmarkSim2D::Robot::IterateMotionModel(particle.pose, dt, ctrlInput);
 
         // 2) Add exploration noise
-        std::normal_distribution<float> normDistPosX{0, sigmaPosX_};
-        std::normal_distribution<float> normDistPosY{0, sigmaPosY_};
-        std::normal_distribution<float> normDistYaw{0, sigmaYaw_};
+        std::normal_distribution<double> normDistPosX{0, sigmaPosX_};
+        std::normal_distribution<double> normDistPosY{0, sigmaPosY_};
+        std::normal_distribution<double> normDistYaw{0, sigmaYaw_};
         predictedPose.posX += normDistPosX(randGenEngine_);
         predictedPose.posY += normDistPosY(randGenEngine_);
         predictedPose.yawRad += normDistYaw(randGenEngine_);
@@ -89,19 +99,20 @@ void ParticleFilter::UpdateWeightsWithObservations(
             // Use distance between the associated particle landmark and robot landmark
             // particle.weight = 0.0f; // reset
             // UpdateParticleWeightEuclideanDist(particle, robotLandmarksInMapFrame, particleLandmarks, obsLmToParLm);
-            particle.weight = 1.0f; // reset
+            particle.weight = 1.0; // reset
             UpdateParticleWeightMultivariateGaussian(
                 particle, robotLandmarksInMapFrame, particleLandmarks, obsLmToParLm);
         }
         else
         {
+            // No landmarks in the vicinity of the particle, worst case assigned
             particle.weight       = std::numeric_limits<float>::min();
-            particle.beliefError2 = filterResetThresh2_; // worst case assigned
+            particle.beliefError2 = filterResetThresh2_;
             avgBeliefError2_ += particle.beliefError2;
         }
     }
     ResampleParticles();
-    avgBeliefError2_ /= static_cast<float>(particles_.size());
+    avgBeliefError2_ /= static_cast<double>(particles_.size());
 }
 
 void ParticleFilter::UpdateWeightsWithObservations2(
@@ -127,7 +138,7 @@ void ParticleFilter::UpdateWeightsWithObservations2(
         }
         else
         {
-            particle.weight = std::numeric_limits<float>::min();
+            particle.weight = std::numeric_limits<double>::min();
         }
     }
     ResampleParticles();
@@ -142,7 +153,7 @@ std::unordered_map<size_t, size_t> ParticleFilter::AssociateObservationsToPartic
     for (size_t robObsIdx = 0; robObsIdx < robotObservations.size(); robObsIdx++)
     {
         const auto &robotObs = robotObservations.at(robObsIdx);
-        float       minError{std::numeric_limits<float>::max()};
+        double      minError{std::numeric_limits<double>::max()};
         size_t      bestPartObsIdx{0};
         for (size_t partObsIdx = 0; partObsIdx < particleObservations.size(); partObsIdx++)
         {
@@ -150,9 +161,9 @@ std::unordered_map<size_t, size_t> ParticleFilter::AssociateObservationsToPartic
             auto        particleObsRangeToRobotObsRange = std::abs(robotObs.range - particleObs.range);
             auto        particleObsBearToRobotObsBear   = std::abs(robotObs.angleRad - particleObs.angleRad);
             // Normalize the errors
-            float normRangeError = particleObsRangeToRobotObsRange / sensorRange_;
-            float normBearError  = particleObsBearToRobotObsBear / (2.0 * M_PI);
-            float normError      = normBearError * normRangeError;
+            double normRangeError = particleObsRangeToRobotObsRange / sensorRange_;
+            double normBearError  = particleObsBearToRobotObsBear / (2.0 * M_PI);
+            double normError      = normBearError * normRangeError;
             if (normError < minError)
             {
                 minError       = normError;
@@ -174,7 +185,7 @@ std::unordered_map<size_t, size_t> ParticleFilter::AssociateObservationsToPartic
     for (size_t robObsIdx = 0; robObsIdx < robotObservations.size(); robObsIdx++)
     {
         const auto &robotObsLm = robotObservations.at(robObsIdx);
-        float       minDistance2{std::numeric_limits<float>::max()}; // distance squared
+        double      minDistance2{std::numeric_limits<double>::max()}; // distance squared
         size_t      bestPartLmIdx{0};
         for (size_t partLmIdx = 0; partLmIdx < particleLandmarks.size(); partLmIdx++)
         {
@@ -235,13 +246,17 @@ void ParticleFilter::UpdateParticleWeightEuclideanDist(
     const std::vector<landmarkSim2D::Map::Landmark> &particleLandmarks,
     const std::unordered_map<size_t, size_t>        &obsLmToParLmMap)
 {
+    particle.beliefError2 = 0.0; // reset belief error
     for (size_t robObsIdx = 0; robObsIdx < robotLandmarkObservationsInMapFrame.size(); robObsIdx++)
     {
         const auto &associatedParticleLmIdx{obsLmToParLmMap.at(robObsIdx)};
         const auto &associatedParticleLm{particleLandmarks.at(associatedParticleLmIdx)};
         auto        distance2 = robotLandmarkObservationsInMapFrame.at(robObsIdx).Distance2(associatedParticleLm);
         particle.weight += 1.0f / distance2;
+        particle.beliefError2 += distance2;
     }
+    particle.beliefError2 /= static_cast<double>(robotLandmarkObservationsInMapFrame.size());
+    avgBeliefError2_ += particle.beliefError2;
 }
 
 void ParticleFilter::UpdateParticleWeight2(Particle                                          &particle,
@@ -260,9 +275,9 @@ void ParticleFilter::UpdateParticleWeight2(Particle                             
         auto particleObsBearToRobotObsBear =
             std::abs(robotObservations.at(robObsIdx).angleRad - associatedParticleObs.angleRad);
         // Normalize the errors
-        float normRangeError = particleObsRangeToRobotObsRange / sensorRange_;
-        float normBearError  = particleObsBearToRobotObsBear / (2.0 * M_PI);
-        float normError      = normBearError * normRangeError;
+        double normRangeError = particleObsRangeToRobotObsRange / sensorRange_;
+        double normBearError  = particleObsBearToRobotObsBear / (2.0 * M_PI);
+        double normError      = normBearError * normRangeError;
 
         particle.weight += 1.0f / normError;
     }
@@ -279,23 +294,32 @@ void ParticleFilter::UpdateParticleWeightMultivariateGaussian(
     const std::vector<landmarkSim2D::Map::Landmark> &particleLandmarks,
     const std::unordered_map<size_t, size_t>        &obsLmToParLmMap)
 {
-    particle.beliefError2 = 0; // reset belief error
+    particle.beliefError2            = 0; // reset belief error
+    static const double constant     = 1.0 / (2.0 * M_PI * sigmaFilterX_ * sigmaFilterY_);
+    static const double expo_x_const = (2.0 * sigmaFilterX_ * sigmaFilterX_);
+    static const double expo_y_const = (2.0 * sigmaFilterY_ * sigmaFilterY_);
+
     for (size_t robObsIdx = 0; robObsIdx < robotLandmarkObservationsInMapFrame.size(); robObsIdx++)
     {
         const auto &associatedParticleLmIdx{obsLmToParLmMap.at(robObsIdx)};
         const auto &associatedParticleLm{particleLandmarks.at(associatedParticleLmIdx)};
         auto        distanceX = associatedParticleLm.posX - robotLandmarkObservationsInMapFrame.at(robObsIdx).posX;
         auto        distanceY = associatedParticleLm.posY - robotLandmarkObservationsInMapFrame.at(robObsIdx).posY;
-        float       weight    = (1.0 / (2.0 * M_PI * sigmaPosX_ * sigmaPosY_)) *
-                       exp(-(distanceX * distanceX / (2 * sigmaPosX_ * sigmaPosX_) +
-                             (distanceY * distanceY / (2 * sigmaPosY_ * sigmaPosY_))));
-        particle.weight *= weight;
-        // auto distance2 = distanceX * distanceX + distanceY * distanceY;
-        // std::cout << "distance " << distance2 << std::endl;
-        particle.beliefError2 += (distanceX * distanceX + distanceY * distanceY);
-    }
+        double      expo      = std::exp(-(
 
-    particle.beliefError2 /= static_cast<float>(robotLandmarkObservationsInMapFrame.size());
+            (distanceX * distanceX / (expo_x_const)) + (distanceY * distanceY / (expo_y_const))
+
+                ));
+
+        double weight = constant * expo;
+        particle.weight *= weight;
+        particle.beliefError2 += (distanceX * distanceX + distanceY * distanceY);
+        // std::cout << std::fixed << std::setprecision(20) << "dx: " << distanceX << " dy: " << distanceY
+        //           << " w: " << weight << std::endl;
+    }
+    // std::cout << std::fixed << std::setprecision(40) << "p: " << particle.id << " w: " << particle.weight << std::endl;
+
+    particle.beliefError2 /= static_cast<double>(robotLandmarkObservationsInMapFrame.size());
     avgBeliefError2_ += particle.beliefError2;
 }
 
@@ -303,19 +327,21 @@ void ParticleFilter::ResampleParticles()
 {
     std::vector<Particle> resampledParticles;
 
-    std::vector<float> cumSum(particles_.size() + 1, 0.0);
+    std::vector<double> cumSum(particles_.size() + 1, 0.0);
     for (size_t i = 0; i < particles_.size(); i++)
     {
         cumSum.at(i + 1) = cumSum.at(i) + particles_.at(i).weight;
     }
 
-    float                                 cumSumLimit = cumSum.back();
-    std::uniform_real_distribution<float> uniformDist(0.0, cumSumLimit);
+    double                                 cumSumLimit = cumSum.back();
+    std::uniform_real_distribution<double> uniformDist(0.0, cumSumLimit);
+    std::cout << "cumSumLimit " << cumSumLimit << std::endl;
+    // throw std::runtime_error("error");
 
     for (size_t i = 0; i < particles_.size(); i++)
     {
         // Pick based on where the random number lies on the resample wheel
-        float seed = uniformDist(randGenEngine_);
+        double seed = uniformDist(randGenEngine_);
         // Find where to put the seed
         int j = (cumSum.size() - 1) - 1; // 1 element before last in cumsum vector
         while (j >= 0)
@@ -325,7 +351,7 @@ void ParticleFilter::ResampleParticles()
                 resampledParticles.push_back(particles_.at(j));
 
                 // update the best Particles list, with limited size
-                bestParticles_.insert(std::pair<float, size_t>(particles_.at(j).weight, static_cast<size_t>(j)));
+                bestParticles_.insert(std::pair<double, size_t>(particles_.at(j).weight, static_cast<size_t>(j)));
                 if (bestParticles_.size() > (particles_.size() / 10))
                 {
                     bestParticles_.erase(std::prev(bestParticles_.end()));
@@ -335,7 +361,9 @@ void ParticleFilter::ResampleParticles()
             j--;
         }
     }
-
+    std::cout << std::fixed << std::setprecision(10) << "w1: " << particles_.at(0).weight
+              << " w2: " << particles_.at(1).weight << " w3: " << particles_.at(2).weight << std::endl;
+    std::cout << "resample size: " << resampledParticles.size() << std::endl;
     particles_ = resampledParticles;
 }
 
@@ -367,8 +395,7 @@ std::vector<landmarkSim2D::RangeBearingObs> ParticleFilter::GenerateObservations
 void ParticleFilter::CheckFilterReset()
 {
     std::cout << "avg Belief error: " << avgBeliefError2_ << std::endl;
-    std::cout << "sensor range sqr: " << sensorRange_ * sensorRange_ << std::endl;
-    static int resetCtr = 0;
+    static size_t resetCtr = 0;
     if (avgBeliefError2_ > filterResetThresh2_)
     {
         resetCtr++;
@@ -377,7 +404,7 @@ void ParticleFilter::CheckFilterReset()
     {
         resetCtr = 0;
     }
-    if (resetCtr > 20)
+    if (resetCtr > kFilterResetCtrLimit)
     {
         ResetFilter();
         resetCtr = 0;

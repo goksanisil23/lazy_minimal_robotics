@@ -2,7 +2,7 @@
 Kalman Filter estimates the states of a system (or process) that can be described by linear system equations. It's a resursive least-squares estimation
 that allows to combine information from motion (process) model with sensor measurements.
 
-It can be used to estimate both the unmeasurable or the measurable but noisy states of the system. 
+It can be used to estimate both the unmeasurable or the measurable but noisy states of the system. The filter is said to be optimal under **additive Gaussian** process and measurement noises, for a **linear system**.
 
 - P = state error covariance: Encrypts the error covariance that the filter thinks the estimated error has.
 - Process noise covariance (Q) and measurement noise covaraince (R) can change each time step or measurement in reality, but we assume constant here. 
@@ -12,6 +12,9 @@ Kalman filter basically estimates a process as a feedback control: The filter es
 Time update equations (PREDICTOR): Projects the current state and error covariance estimates, forward in time, to obtain a-priori estimate for the next time step.
 
 Measurement update (CORRECTOR): Incorporates new measurement into a-priori estimate to obtain an a-posteriori estimate.
+
+> **Note**
+> Process and measurement covariance matrices are supposed to reflect the statistics of the noises. In practice however, true statistics of these noises are not known or not Gaussian in many applications. Hence, Q & R are usuallly used as tuning parameters which significantly affect the performance.
 
 This folder contains the implementation as shown below, from https://www.cs.unc.edu/~welch/media/pdf/kalman_intro.pdf
 

@@ -23,10 +23,23 @@ ControlInput Robot::GenerateCircularControlInput()
     return ctrlInput;
 }
 
+ControlInput Robot::GenerateSinusoidalControlInput(const float &dt)
+{
+    ControlInput  ctrlInput;
+    static double f      = 0.2; // [Hz] frequency of the wave
+    static double t      = 0;   // time variable
+    ctrlInput.angularVel = 0.4 * sin(2 * M_PI * f * t);
+    ctrlInput.linearVel  = 1.2;
+
+    t = std::fmod((t + dt), (1.0 / f));
+    return ctrlInput;
+}
+
 void Robot::Act(const float &dt)
 {
     // Generate control input
     trueControlInput_ = ControlInput{GenerateCircularControlInput()};
+    // trueControlInput_ = ControlInput{GenerateSinusoidalControlInput(dt)};
 
     measuredControlInput_ = MeasureControlInputWithNoise();
 
@@ -58,10 +71,10 @@ void Robot::DetectLandmarksWithNoise()
         float           angleToLandmark =
             atan2(landmarkInRange.posY - truePose_.posY, landmarkInRange.posX - truePose_.posX) - truePose_.yawRad;
         observation.angleRad = angleToLandmark;
-        // observation.angleRad += noiseBearing_(randGen_); // add noise
+        observation.angleRad += noiseBearing_(randGen_); // add noise
         observation.range = sqrt((landmarkInRange.posY - truePose_.posY) * (landmarkInRange.posY - truePose_.posY) +
                                  (landmarkInRange.posX - truePose_.posX) * (landmarkInRange.posX - truePose_.posX));
-        // observation.range += noiseRange_(randGen_); // add noise
+        observation.range += noiseRange_(randGen_); // add noise
         observation.id = obsId;
 
         observedLandmarks_.push_back(observation);

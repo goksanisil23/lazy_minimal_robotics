@@ -18,6 +18,8 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
 find_package(landmarksim2d_msgs REQUIRED)
 find_package(LandmarkSim2dLib REQUIRED)
 
@@ -27,7 +29,14 @@ add_executable(${CMAKE_PROJECT_NAME}
 
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC include)
 
-ament_target_dependencies(${CMAKE_PROJECT_NAME} rclcpp visualization_msgs nav_msgs landmarksim2d_msgs std_msgs)
+ament_target_dependencies(${CMAKE_PROJECT_NAME} 
+  rclcpp 
+  std_msgs
+  visualization_msgs 
+  nav_msgs 
+  landmarksim2d_msgs 
+  tf2_ros
+  tf2)
 target_link_libraries(${CMAKE_PROJECT_NAME} LandmarkSim2dLib)
 
 install(TARGETS

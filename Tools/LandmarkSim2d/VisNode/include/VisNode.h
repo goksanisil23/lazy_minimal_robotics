@@ -10,6 +10,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "tf2_ros/transform_broadcaster.h"
 #include "visualization_msgs/msg/marker.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 
@@ -19,8 +20,10 @@ using namespace std::chrono_literals;
 
 namespace landmarkSim2D
 {
-constexpr uint32_t ROBOT_MOTION_PERIOD_MS  = 100;
-constexpr uint32_t ROBOT_SENSING_PERIOD_MS = 100;
+// constexpr uint32_t ROBOT_MOTION_PERIOD_MS  = 100;
+// constexpr uint32_t ROBOT_SENSING_PERIOD_MS = 100;
+constexpr uint32_t ROBOT_MOTION_PERIOD_MS  = 400;
+constexpr uint32_t ROBOT_SENSING_PERIOD_MS = 400;
 
 class VisNode : public rclcpp::Node
 {
@@ -57,6 +60,8 @@ class VisNode : public rclcpp::Node
     rclcpp::Publisher<landmarksim2d_msgs::msg::ControlInputMeasMsg>::SharedPtr ctrlInMeasPublisher_;
 
     rclcpp::Service<landmarksim2d_msgs::srv::Map>::SharedPtr mapServer_;
+
+    std::unique_ptr<tf2_ros::TransformBroadcaster> trueTfPublisher_;
 
     visualization_msgs::msg::MarkerArray landmarkMapMarkers_;
 };

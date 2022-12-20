@@ -83,9 +83,10 @@ class ParticleFilterNode : public rclcpp::Node
             auto t2 = time_util::chronoNow();
             PublishParticleViz(particleFilter_->particles_);
             auto t3 = time_util::chronoNow();
+            ShowBestParticle(particleFilter_->bestParticles_, particleFilter_->particles_);
 
-            time_util::showTimeDuration(t2, t1, "predict: ");
-            time_util::showTimeDuration(t3, t2, "particle vis: ");
+            // time_util::showTimeDuration(t2, t1, "predict: ");
+            // time_util::showTimeDuration(t3, t2, "particle vis: ");
         }
         mutexParticle_.unlock();
     }
@@ -105,11 +106,11 @@ class ParticleFilterNode : public rclcpp::Node
             particleFilter_->UpdateWeightsWithObservations(landmarkObservations);
             // particleFilter_->UpdateWeightsWithObservations2(landmarkObservations);
             auto t2 = time_util::chronoNow();
-            ShowBestParticle(particleFilter_->bestParticles_, particleFilter_->particles_);
-            auto t3 = time_util::chronoNow();
-            time_util::showTimeDuration(t2, t1, "update weight: ");
-            time_util::showTimeDuration(t3, t2, "best particle: ");
+            // time_util::showTimeDuration(t2, t1, "update weight: ");
+            // time_util::showTimeDuration(t3, t2, "best particle: ");
             particleFilter_->CheckFilterReset();
+            auto t4 = time_util::chronoNow();
+            time_util::showTimeDuration(t4, t1, "total filter time: ");
         }
         mutexParticle_.unlock();
     }
@@ -117,6 +118,7 @@ class ParticleFilterNode : public rclcpp::Node
     void PublishParticleViz(const std::vector<ParticleFilter::Particle> &particles)
     {
         auto particleMarkers = visualization_msgs::msg::Marker();
+
         // Generic marker properties
         particleMarkers.header.frame_id = "map";
         particleMarkers.header.stamp    = this->now();
@@ -145,11 +147,11 @@ class ParticleFilterNode : public rclcpp::Node
         particleVizPub_->publish(particleMarkers);
     }
 
-    void ShowBestParticle(const std::multimap<float, size_t, std::greater<float>> &bestParticles,
-                          const std::vector<ParticleFilter::Particle>             &particles)
+    void ShowBestParticle(const std::multimap<double, size_t, std::greater<double>> &bestParticles,
+                          const std::vector<ParticleFilter::Particle>               &particles)
     {
         // A) Find best particle
-        // float  highestWeight{0.0};
+        // double  highestWeight{0.0};
         // size_t bestParticleIdx;
         // for (size_t partIdx = 0; partIdx < particles.size(); partIdx++)
         // {
@@ -163,22 +165,38 @@ class ParticleFilterNode : public rclcpp::Node
         // ParticleFilter::Particle bestParticle(particles.at(bestParticleIdx));
 
         // B) Average best particles
+        // ParticleFilter::Particle bestParticle;
+        // bestParticle.pose.yawRad = 0.0;
+        // bestParticle.pose.posX   = 0.0;
+        // bestParticle.pose.posY   = 0.0;
+        // for (const auto &bestParticlesItr : bestParticles)
+        // {
+        //     bestParticle.pose.posX += particles.at(bestParticlesItr.second).pose.posX;
+        //     bestParticle.pose.posY += particles.at(bestParticlesItr.second).pose.posY;
+        //     bestParticle.pose.yawRad += particles.at(bestParticlesItr.second).pose.yawRad;
+        //     // std::cout << bestParticlesItr.first << std::endl;
+        //     // std::cout << particles.at(bestParticlesItr.second).beliefError2 << std::endl;
+        // }
+        // // std::cout << "----------------" << std::endl;
+        // bestParticle.pose.posX /= static_cast<float>(bestParticles.size());
+        // bestParticle.pose.posY /= static_cast<float>(bestParticles.size());
+        // bestParticle.pose.yawRad /= static_cast<float>(bestParticles.size());
+
+        // C) Average all particles
         ParticleFilter::Particle bestParticle;
         bestParticle.pose.yawRad = 0.0;
         bestParticle.pose.posX   = 0.0;
         bestParticle.pose.posY   = 0.0;
-        for (const auto &bestParticlesItr : bestParticles)
+        double totalX{0.0}, totalY{0.0}, totalYaw{0.0};
+        for (size_t partIdx = 0; partIdx < particles.size(); partIdx++)
         {
-            bestParticle.pose.posX += particles.at(bestParticlesItr.second).pose.posX;
-            bestParticle.pose.posY += particles.at(bestParticlesItr.second).pose.posY;
-            bestParticle.pose.yawRad += particles.at(bestParticlesItr.second).pose.yawRad;
-            // std::cout << bestParticlesItr.first << std::endl;
-            // std::cout << particles.at(bestParticlesItr.second).beliefError2 << std::endl;
+            totalX += particles.at(partIdx).pose.posX;
+            totalY += particles.at(partIdx).pose.posY;
+            totalYaw += particles.at(partIdx).pose.yawRad;
         }
-        // std::cout << "----------------" << std::endl;
-        bestParticle.pose.posX /= static_cast<float>(bestParticles.size());
-        bestParticle.pose.posY /= static_cast<float>(bestParticles.size());
-        bestParticle.pose.yawRad /= static_cast<float>(bestParticles.size());
+        bestParticle.pose.posX   = totalX / static_cast<float>(particles.size());
+        bestParticle.pose.posY   = totalY / static_cast<float>(particles.size());
+        bestParticle.pose.yawRad = totalYaw / static_cast<float>(particles.size());
 
         // Generate rviz marker objects
         auto bestParticleMarker = visualization_msgs::msg::Marker();

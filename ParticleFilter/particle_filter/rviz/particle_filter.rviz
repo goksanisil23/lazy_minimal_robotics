@@ -4,18 +4,16 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /Status1
         - /gt_odom1/Topic1
+        - /gt_odom1/Shape1
         - /landmark_obs1/Topic1
         - /sensor_fov1/Topic1
         - /dr_odom1/Topic1
         - /dr_odom1/Shape1
-        - /particles1
         - /particles1/Topic1
         - /best_particle1/Topic1
       Splitter Ratio: 0.5813397169113159
-    Tree Height: 1147
+    Tree Height: 363
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -36,7 +34,7 @@ Visualization Manager:
       Cell Size: 1
       Class: rviz_default_plugins/Grid
       Color: 160; 160; 164
-      Enabled: true
+      Enabled: false
       Line Style:
         Line Width: 0.029999999329447746
         Value: Lines
@@ -49,7 +47,7 @@ Visualization Manager:
       Plane: XY
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
-      Value: true
+      Value: false
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
       Name: Landmarks
@@ -80,19 +78,19 @@ Visualization Manager:
           Value: true
         Value: true
       Enabled: true
-      Keep: 100
+      Keep: 1
       Name: gt_odom
       Position Tolerance: 0.10000000149011612
       Shape:
         Alpha: 1
         Axes Length: 1
-        Axes Radius: 0.10000000149011612
+        Axes Radius: 0.20000000298023224
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
         Shaft Length: 1
         Shaft Radius: 0.05000000074505806
-        Value: Arrow
+        Value: Axes
       Topic:
         Depth: 1
         Durability Policy: Volatile
@@ -196,7 +194,7 @@ Visualization Manager:
   Global Options:
     Background Color: 0; 0; 0
     Fixed Frame: map
-    Frame Rate: 30
+    Frame Rate: 10
   Name: root
   Tools:
     - Class: rviz_default_plugins/Interact
@@ -238,25 +236,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 39.871395111083984
+      Distance: 46.05772399902344
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.16380350291728973
-        Y: 0.7228313088417053
-        Z: -1.1072590351104736
+        X: 1.4189658164978027
+        Y: -0.40269577503204346
+        Z: -0.5594316720962524
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.2797973155975342
+      Pitch: 1.4047964811325073
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.226737976074219
+      Yaw: 5.1635823249816895
     Saved: ~
 Window Geometry:
   Displays:
