@@ -1,6 +1,6 @@
 # Lazy Minimal Robotics
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/cover_particle_filt.png" width=20% height=20%>
+<img align="center" src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/cover_particle_filt.png" width=30% height=30%>
 
 Minimal implementations for personally interesting ideas &amp; algorithms that can be useful for robotics applications, in C/C++.
 
