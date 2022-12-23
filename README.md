@@ -23,7 +23,7 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [ ] Structure from Motion with Pose Graph Optimization
 - [ ] Dense Reconstruction via Multi-View Stereo
 - [ ] Factor graph object tracking
-- [ ] Occupancy Grid
+- [ ] 3D Voxel Occupancy Grid
 - [ ] Single & Multi object tracking --> tracking nba players in a video sequence?
 - [ ] Optimal Assignment (hungarian algo)
-- [ ] Homography to place country flag into swimming lanes which are planar.
+- [ ] Homography

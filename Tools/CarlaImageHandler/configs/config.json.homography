@@ -1,0 +1,5 @@
+{
+    "RGB_SAVE_PREFIX": "/home/goksan/Work/lazy_minimal_robotics/Homography/resources/pure_rotation/rgb_",
+    "DEPTH_SAVE_PREFIX": "",
+    "CAM_POSE_TXT_PATH": "/home/goksan/Work/lazy_minimal_robotics/Homography/resources/pure_rotation/camera_poses_gt.txt"
+}

@@ -1,0 +1,5 @@
+{
+    "RGB_SAVE_PREFIX": "/home/goksan/Work/lazy_minimal_robotics/SFM/resources/data/imgs/rgb/rgb_",
+    "DEPTH_SAVE_PREFIX": "/home/goksan/Work/lazy_minimal_robotics/SFM/resources/data/imgs/depth/depth_",
+    "CAM_POSE_TXT_PATH": "/home/goksan/Work/lazy_minimal_robotics/SFM/resources/data/camera_poses_gt.txt"
+}

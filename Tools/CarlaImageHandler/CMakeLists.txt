@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(carla_img_saver)
+project(carla_img_handler)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -fPIC -O3")
@@ -18,27 +18,24 @@ endif(OpenCV_FOUND)
 
 find_package(Eigen3 3.4)
 
-find_package(SFML REQUIRED COMPONENTS graphics window system)
+add_executable(carla_img_saver carla_img_saver.cpp)
 
-add_executable(${CMAKE_PROJECT_NAME} carla_img_saver.cpp)
-
-target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC 
+target_include_directories(carla_img_saver PUBLIC 
 	${LIB_CARLA_PATH}/include
 	${LIB_CARLA_PATH}/include/system
 	${OpenCV_INCLUDE_DIRS}
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${EIGEN3_INCLUDE_DIR}
 	${SFML_INCLUDE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/../../External/jsonhpp
 )
 
-target_link_directories(${CMAKE_PROJECT_NAME} PUBLIC
+target_link_directories(carla_img_saver PUBLIC
     ${LIB_CARLA_PATH}/lib
 	${OpenCV_LIBRARY_DIRS}
 )
 
-include_directories(${OpenCV_INCLUDE_DIRS})
-
-target_link_libraries(${CMAKE_PROJECT_NAME} 
+target_link_libraries(carla_img_saver
 	carla_client
 	rpc
 	boost_filesystem

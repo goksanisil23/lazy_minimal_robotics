@@ -2,6 +2,8 @@
 - Overall state estimation in robotics: http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf
 - Visual SLAM with surrounding concepts explained: https://github.com/gaoxiang12/slambook-en
 - Fundamentals of Computer Vision: https://www.youtube.com/channel/UCf0WB91t8Ky6AuYcQV0CcLw/videos
+- Oslo University Computer Vision Slides: https://www.uio.no/studier/emner/matnat/its/TEK5030/v20/forelesninger/
+
 - Lidar datasets: 
     - https://scale.com/open-av-datasets/pandaset#overview
     - https://waymo.com/open/

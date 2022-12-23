@@ -2,6 +2,7 @@
 #include <condition_variable>
 #include <fstream>
 #include <iostream>
+#include <json.hpp>
 #include <mutex>
 #include <queue>
 #include <random>
@@ -30,8 +31,10 @@
 #include <opencv4/opencv2/opencv.hpp>
 
 #include "ThreadSafeQueue.h"
+#include "cam_pose_manager.hpp"
+#include "utils.h"
 
-#include <SFML/Window/Keyboard.hpp>
+using json = nlohmann::json;
 
 namespace cc  = carla::client;
 namespace cg  = carla::geom;
@@ -45,26 +48,10 @@ constexpr int16_t   IMAGE_HEIGHT  = 640;
 constexpr u_int32_t NUM_SIM_STEPS = 1000;
 constexpr double    SIM_STEP_TIME = 0.1; // secs
 
-constexpr double NEXT_WAYPOINT_DIST = 0.5;
-constexpr int    NUM_WAYPOINTS      = 50;
-
-const std::string RGB_SAVE_PREFIX   = "../../resources/data/imgs/rgb/rgb_";
-const std::string DEPTH_SAVE_PREFIX = "../../resources/data/imgs/depth/depth_";
-const std::string CAM_POSE_TXT_PATH = "../../resources/data/camera_poses_gt.txt";
-
-static bool  is_reverse = false;
-static float throttle   = 0.0;
-static float steer      = 0.0;
-static float brake      = 0.0;
+json jsonConfig;
 
 std::mutex              controlsMtx;
 std::condition_variable controlsCondVar;
-
-struct RoboticsPose
-{
-    float x, y, z;
-    float qx, qy, qz, qw;
-};
 
 // Converts Carla RGB Camera image to OpenCV image, by popping the oldest element in the queue
 void CarlaRGBToOpenCV(TSQueue<boost::shared_ptr<csd::Image>> &carla_image_queue, cv::Mat &cv_img)
@@ -131,78 +118,12 @@ cv::Mat getCameraIntrinsic(const carla::client::BlueprintLibrary::value_type &ca
     return K;
 }
 
-void updateControls()
-{
-    while (true)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(33));
-        std::lock_guard<std::mutex> lock{controlsMtx};
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
-        {
-            throttle += 0.01f;
-            throttle = std::clamp(throttle, 0.0f, 1.0f);
-        }
-        else
-        {
-            throttle -= 0.01f;
-            throttle = std::clamp(throttle, 0.0f, 1.0f);
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
-        {
-            brake += 0.2f;
-            brake = std::clamp(brake, 0.0f, 1.0f);
-        }
-        else
-        {
-            brake -= 0.2f;
-            brake = std::clamp(brake, 0.0f, 1.0f);
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-        {
-            steer -= 0.01f;
-            steer = std::clamp(steer, -1.0f, 1.0f);
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-        {
-            steer += 0.01f;
-            steer = std::clamp(steer, -1.0f, 1.0f);
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q))
-        {
-            is_reverse = !is_reverse;
-        }
-    }
-
-    // controlsCondVar.notify_one();
-}
-
 std::string zeroPadNumber(int number)
 {
     static const size_t padLen       = 5;
     std::string         numberStr    = std::to_string(number);
     auto                paddedNumStr = std::string(padLen - std::min(padLen, numberStr.length()), '0') + numberStr;
     return paddedNumStr;
-}
-
-void applyManualControl(boost::shared_ptr<cc::Vehicle> vehicle)
-{
-    std::lock_guard<std::mutex> lock{controlsMtx};
-    std::cout << "t: " << throttle << " b: " << brake << " s: " << steer << " reverse:" << is_reverse << std::endl;
-    vehicle->ApplyControl(cc::Vehicle::Control(throttle, steer, brake, false, is_reverse, false, 0));
-}
-
-void showImage(const cv::Mat &cv_img)
-{
-    static int imgCtr = 0;
-    while (true)
-    {
-        // std::this_thread::sleep_for(std::chrono::milliseconds(33));
-        // std::lock_guard<std::mutex> lock{controlsMtx};
-        cv::imshow("img", cv_img);
-        cv::waitKey(33);
-        std::cout << "imgctr: " << imgCtr << std::endl;
-        imgCtr++;
-    }
 }
 
 void carlaTransformToRoboticsConvention(const cg::Transform &camera_pose, RoboticsPose &camera_pose_robotics)
@@ -227,7 +148,7 @@ void carlaTransformToRoboticsConvention(const cg::Transform &camera_pose, Roboti
 
 void setTextureForSculpture(cc::World &world)
 {
-    cv::Mat textureCvImg = cv::imread("../../resources/texture_for_carla/texture.png");
+    cv::Mat textureCvImg = cv::imread("../resources/texture_for_carla/texture.png");
     std::cout << "read texture" << std::endl;
     auto texture_height = textureCvImg.rows;
     auto texture_width  = textureCvImg.cols;
@@ -257,6 +178,12 @@ void setTextureForSculpture(cc::World &world)
 
 int main()
 {
+    std::ifstream ifs("../configs/config.json");
+    jsonConfig                          = json::parse(ifs);
+    const std::string RGB_SAVE_PREFIX   = static_cast<std::string>(jsonConfig.at("RGB_SAVE_PREFIX"));
+    const std::string DEPTH_SAVE_PREFIX = static_cast<std::string>(jsonConfig.at("DEPTH_SAVE_PREFIX"));
+    const std::string CAM_POSE_TXT_PATH = static_cast<std::string>(jsonConfig.at("CAM_POSE_TXT_PATH"));
+
     try
     {
         std::string host("localhost");
@@ -285,21 +212,10 @@ int main()
         // Change the texture of the roundabout architecture
         setTextureForSculpture(world);
 
-        auto spawn_transform  = cg::Transform{cg::Location{15.4, 9.2, 0.6}, cg::Rotation{10.0f, 0.0f, 0.0f}};
-        auto current_waypoint = world.GetMap()->GetWaypoint(spawn_transform.location);
-        std::vector<cg::Transform> position_list;
-        for (int i = 0; i < NUM_WAYPOINTS; i++)
-        {
-            auto next_waypoint = current_waypoint->GetNext(NEXT_WAYPOINT_DIST).at(0);
-            auto wp            = next_waypoint->GetTransform();
-            wp.rotation.yaw += -90.0;
-            wp.location.z += 4.0;
-            wp.rotation.pitch -= 5.0;
-            position_list.push_back(wp);
-            auto pt = next_waypoint->GetTransform().location;
-            world.MakeDebugHelper().DrawPoint(pt, 0.1, cc::Color(0, 0, 255, 255), 0, false);
-            current_waypoint = next_waypoint;
-        }
+        // A) Setup for Structure-from-motion experiment
+        // std::vector<cg::Transform> position_list{GenerateSfmPoseList(world)};
+        // B) Setup for pure-rotation homography
+        std::vector<cg::Transform> position_list{GeneratePureRotationPoseList(world)};
 
         // Find a camera blueprint.
         auto camera_rgb_bp   = (*(blueprint_library->Filter("sensor.camera.rgb")))[0];
@@ -343,10 +259,6 @@ int main()
         cg::Transform camera_odom;
         bool          init_frame = true;
 
-        // Start the keyboard handling thread for manual controls
-        // std::thread keyboardThread(updateControls);
-        // std::thread renderThread(showImage, cv_img);
-
         auto pos_itr = position_list.begin();
         rgb_camera->SetTransform(*pos_itr);
         depth_camera->SetTransform(*pos_itr);
@@ -385,8 +297,10 @@ int main()
             std::string numStr        = zeroPadNumber(imgNum);
             std::string rgbSavePath   = RGB_SAVE_PREFIX + numStr + std::string(".png");
             std::string depthSavePath = DEPTH_SAVE_PREFIX + numStr + std::string(".png");
-            cv::imwrite(rgbSavePath, cv_img);
-            cv::imwrite(depthSavePath, cv_depth_img);
+            if (!RGB_SAVE_PREFIX.empty())
+                cv::imwrite(rgbSavePath, cv_img);
+            if (!DEPTH_SAVE_PREFIX.empty())
+                cv::imwrite(depthSavePath, cv_depth_img);
 
             rgb_camera->SetTransform(*pos_itr);
             depth_camera->SetTransform(*pos_itr);
