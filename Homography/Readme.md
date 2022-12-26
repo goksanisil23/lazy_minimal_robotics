@@ -5,6 +5,7 @@ Homography (*projective transformation*) in general is the transformation that t
 
 
 The main attractiveness of homography is due to the simplification it brings to certain transformations. When we have the assumption of 3D-points of interest being on the same plane `(Z=0)`, 3x4 camera matrix (= intrinsics*extrinsics) simplifies into a (3x3) homography matrix.
+
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/camera_matrix.png" width=30% height=30%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/homography_matrix.png" width=30% height=30%>
 
 Note that there are 8 unique points in the homography matrix since the scale factor is arbitrary with the homogenous coordinates. `(h_33=1 or |H|=1)`
