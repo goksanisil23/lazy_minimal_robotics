@@ -28,8 +28,10 @@ Most common occurances can be group into 3:
 
 ## Usage Examples Of Homography
 ### Image Stitching (e.g. Panorama)
-We have a camera undergoing pure rotation here and the aim is to merge the right image onto the left image. 
+We have a camera undergoing pure rotation here and the aim is to merge the right image onto the left image.
+
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/pure_rotation/rgb_00003.png" width=15% height=15%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/pure_rotation/rgb_00004.png" width=15% height=15%>
+
 When the right image is transformed with homography, its borders are clipped by the original image dimensions. Hence, we need to:
 1. Use homography to find the bounding corners of the warped right image.
 2. Determine the required offset to bring the warped image bounding corners within > (0,0)
