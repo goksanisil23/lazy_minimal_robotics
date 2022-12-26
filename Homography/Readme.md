@@ -45,8 +45,6 @@ cv::Mat shiftedHomographyMatrix = shift * homographyMatrix;
 5. Merge the left and warped right image, where the size of the final image is determined by the union of the shifted+warped right image corners and the left image corners.
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/stitched_pure_rotation.png" width=30% height=30%>   
 
-### Projecting 2D template image to planar surfaces
-
 ### Camera Pose Estimation
 We have a **3D planar** object **whose dimensions are known**, and we're capturing its images from different positions. The goal is to estimate the pose of the camera at these locations, ***with respect to the reference frame of the 3D object***.
 

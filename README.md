@@ -1,5 +1,6 @@
 # Lazy Minimal Robotics
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ParticleFilter/resources/particle_filter_convergence.gif" width=30% height=30%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/ICP/3D/resources/3d_point_to_plane.gif" width=18% height=20%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/SFM/resources/sfm_before_after.png" width=52% height=30%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/homography_cam_pose.gif" width=20% height=20%>
 
 Minimal implementations for personally interesting ideas &amp; algorithms that can be useful for robotics applications, in C/C++.
 
@@ -14,6 +15,7 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [x] [Unscented Kalman Filter](/UnscentedKalmanFilter)
 - [x] [Particle filter](/ParticleFilter)
 - [x] [ICP](/ICP)
+- [x] [Homography](/Homography)
 - [x] [Indirect Monocular Visual Odometry with SIFT/ORB features](/VisualOdometry/Indirect/matching)
 - [x] [Indirect Monocular Visual Odometry with Sparse Optical Flow](/VisualOdometry/Indirect/tracking)
 - [x] [Stereo Vision Depth Estimation](/StereoDepth)
@@ -26,4 +28,3 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [ ] 3D Voxel Occupancy Grid
 - [ ] Single & Multi object tracking --> tracking nba players in a video sequence?
 - [ ] Optimal Assignment (hungarian algo)
-- [ ] Homography
