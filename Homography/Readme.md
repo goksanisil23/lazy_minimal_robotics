@@ -4,7 +4,7 @@ Homography (*projective transformation*) in general is the transformation that t
 <img align="center" width="150" height="150" src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/homography_definition.png">
 
 
-The main attractiveness of homography is due to the simplification it brings to certain transformations. When we have the assumption of 3D-points of interest being on the same plane `(Z=0)`, 3x4 camera matrix (= intrinsics*extrinsics) simplifies into a (3x3) homography matrix.
+The main attractiveness of homography is due to the simplification it brings to certain transformations. When we have the assumption of 3D-points of interest being on the same plane `(Z=0)`, 3x4 camera matrix `(intrinsics * extrinsics)` simplifies into a (3x3) homography matrix.
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/camera_matrix.png" width=30% height=30%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/homography_matrix.png" width=30% height=30%>
 
