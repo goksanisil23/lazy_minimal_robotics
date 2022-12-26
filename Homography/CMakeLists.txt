@@ -41,11 +41,13 @@ ENDFUNCTION()
 
 # Target specifics
 
-SET(pure_rotation_sources main.cpp Homography.cpp)
+SET(pure_rotation_sources pure_rotation_panorama.cpp Homography.cpp)
 SET(test_sources test.cpp)
+SET(camera_pose_estimator_sources camera_pose_estimator.cpp Homography.cpp oakd_image_reader.hpp Viz3D.cpp)
 
 OCV_BUILD(homography_pure_rotation "${pure_rotation_sources}")
 OCV_BUILD(test "${test_sources}")
+OCV_BUILD(camera_pose_estimator "${camera_pose_estimator_sources}")
 
 
 
