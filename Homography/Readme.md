@@ -51,6 +51,7 @@ cv::Mat shiftedHomographyMatrix = shift * homographyMatrix;
 We have a **3D planar** object **whose dimensions are known**, and we're capturing its images from different positions. The goal is to estimate the pose of the camera at these locations, ***with respect to the reference frame of the 3D object***.
 
 As mentioned above, homography contains a subset of the general camera matrix.
+
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/homography_eq.png" width=17% height=17%>
 
 After computing the homography, the above equation can be decomposed to extract  `R_1, R_2, t`.
@@ -60,6 +61,7 @@ After computing the homography, the above equation can be decomposed to extract 
 4. Using the camera, instrinsics we obtain
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/scale_ambiguity_1.png" width=17% height=17%>
 Due to the scale ambiguity, for now we only have
+
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/scale_ambiguity_2.png" width=17% height=17%>
 
 5. Normally `R3` can be obtained by the cross product of `R1xR2`.
@@ -71,5 +73,6 @@ Due to the scale ambiguity, for now we only have
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/homography_matches.gif" width=30% height=30%>
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/bbox_homography.gif" width=30% height=30%>
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/homography_cam_pose.gif" width=30% height=30%>
+
 ## References
 - https://www.uio.no/studier/emner/matnat/its/TEK5030/v20/forelesninger/lecture_6_1_pose-estimation.pdf
