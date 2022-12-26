@@ -70,9 +70,9 @@ Due to the scale ambiguity, for now we only have
     - Then get `R3` via `R1 x R2`
 6. Since we know that 2-left columns of M are `R1` and `R2` which have **unit norm**, we use this info to recover `ʎ`.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/homography_matches.gif" width=30% height=30%>
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/bbox_homography.gif" width=30% height=30%>
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/homography_cam_pose.gif" width=30% height=30%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/homography_matches.gif" width=40% height=40%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/bbox_homography.gif" width=40% height=40%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Homography/resources/homography_cam_pose.gif" width=40% height=40%>
 
 ## References
 - https://www.uio.no/studier/emner/matnat/its/TEK5030/v20/forelesninger/lecture_6_1_pose-estimation.pdf
