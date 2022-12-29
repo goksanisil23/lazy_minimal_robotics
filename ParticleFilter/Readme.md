@@ -21,7 +21,7 @@ Intuitively, weight assignment can be seen as **survival of the fittest**: *weig
 > Particle filter, just like Kalman filter, is still a Bayesian filter, which means the state estimation is performed by combining a prior state probability (iteration with motion model) with a statistical model for a measurement (likelihood).
 
 **Prediction:** motion model and control commands + exploration noise. 
-*This noise is to account for the wrongness of the motion model and control input, and basically randomly exploring the vicinity to account for such errors.*
+*This noise is to account for the wrongness of the motion model and control input, and basically randomly exploring the vicinity to account for such errors. Also called stochastic diffusion.*
 
 **Correction:** sensor measurements. Given that my robot would be where this particle is, how likely is it to obtain particle's observation, given the robot's observation.
 Based on this likeliness, the particle receives an importance weight.

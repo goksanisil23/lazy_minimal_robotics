@@ -27,7 +27,8 @@ target_include_directories(carla_img_saver PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${EIGEN3_INCLUDE_DIR}
 	${SFML_INCLUDE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/../../External/jsonhpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../../common
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../External/jsonhpp
 )
 
 target_link_directories(carla_img_saver PUBLIC

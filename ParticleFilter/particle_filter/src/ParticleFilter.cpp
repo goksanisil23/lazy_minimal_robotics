@@ -59,7 +59,7 @@ void ParticleFilter::PredictAndExplore(const landmarkSim2D::ControlInput &ctrlIn
         // 1) dead-reckon with the motion model + ctrl input
         landmarkSim2D::Pose2D predictedPose = landmarkSim2D::Robot::IterateMotionModel(particle.pose, dt, ctrlInput);
 
-        // 2) Add exploration noise
+        // 2) Add exploration noise (also called stochastic diffusion)
         std::normal_distribution<double> normDistPosX{0, sigmaPosX_};
         std::normal_distribution<double> normDistPosY{0, sigmaPosY_};
         std::normal_distribution<double> normDistYaw{0, sigmaYaw_};
