@@ -16,13 +16,16 @@ find_package(landmarksim2d_msgs REQUIRED)
 find_package(LandmarkSim2dLib REQUIRED)
 find_package(visualization_msgs REQUIRED)
 
+set(LMR_UTILS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../Tools/common)
+
 add_executable(${CMAKE_PROJECT_NAME} 
   src/particle_filter_node.cpp
   src/ParticleFilter.cpp
-  src/TimeUtil.cpp)
+  ${LMR_UTILS_PATH}/TimeUtil.cpp)
 
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC 
-  include/)
+  include/
+  ${LMR_UTILS_PATH})
 
 target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 

@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.8)
 project(occupancy_grid)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -fPIC -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -fPIC -O3")
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
 
 # Carla
 set(LIB_CARLA_PATH "/home/goksan/Work/carla/Examples/CppClient/libcarla-install")
@@ -15,6 +18,8 @@ if(NOT Open3D_FOUND)
 endif()
 
 # find_package(PCL 1.3 REQUIRED)
+
+set(LMR_UTILS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../Tools/common)
 
 ####### Build CarlaSim as library #######
 add_library(carla_sim ${CARLA_SIM_PATH}/CarlaSim.cpp)
@@ -47,7 +52,10 @@ target_link_libraries(carla_sim
 # add_definitions(${PCL_DEFINITIONS})
 
 ####### Build occupancy grid #######
-add_executable(${CMAKE_PROJECT_NAME} main.cpp OccupancyGrid.cpp)
+add_executable(${CMAKE_PROJECT_NAME} 
+	main.cpp 
+	OccupancyGrid.cpp
+	${LMR_UTILS_PATH}/TimeUtil.cpp)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} 
 	carla_sim
@@ -56,5 +64,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC 
 	${CMAKE_CURRENT_SOURCE_DIR}	
 	${CARLA_SIM_PATH}
+	${LMR_UTILS_PATH}
 )
+
+target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE ENABLE_OGRID_VIS=1)
 

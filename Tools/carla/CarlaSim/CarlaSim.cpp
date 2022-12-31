@@ -68,7 +68,7 @@ boost::shared_ptr<cc::Sensor> CarlaSim::SpawnLidar()
     lidarBp.SetAttribute("upper_fov", "22.5");
     lidarBp.SetAttribute("lower_fov", "-22.5");
     lidarBp.SetAttribute("channels", "64");
-    lidarBp.SetAttribute("range", "150.0");
+    lidarBp.SetAttribute("range", "100.0");
     lidarBp.SetAttribute("points_per_second", "327680");
     lidarBp.SetAttribute("rotation_frequency", "10");
     // lidarBp.SetAttribute("sensor_tick", "0.1");
@@ -102,6 +102,11 @@ void CarlaSim::LidarCallback(boost::shared_ptr<carla::sensor::SensorData> lidarD
 {
     // auto pointcloud = boost::static_pointer_cast<csd::Array<csd::LidarDetection>>(lidar_data);
     auto pointcloudPtr = boost::static_pointer_cast<SemanticLidarData>(lidarDataPtr);
+    // Need to flip the y-axis of each point since Carla uses Left-hand coordinate system
+    for (auto &pt : *pointcloudPtr)
+    {
+        pt.point.y = -pt.point.y;
+    }
     lidarDataPtrQueue_.Enqueue(pointcloudPtr);
 };
 
@@ -151,7 +156,9 @@ void CarlaSim::UpdateCloudViz(boost::shared_ptr<SemanticLidarData> pointcloudPtr
     o3dColors_.clear();
     for (auto &pt : *pointcloudPtr)
     {
-        o3dPoints_.push_back({pt.point.x, pt.point.y, pt.point.z});
+        // we use x-forward, y-left, o3d uses x-right, y-forward
+        // o3dPoints_.push_back({pt.point.x, pt.point.y, pt.point.z});
+        o3dPoints_.push_back({-pt.point.y, pt.point.x, pt.point.z});
         o3dColors_.emplace_back(semSegColors_.GetColorForId(pt.object_tag).data());
     }
     o3dCloud_->points_ = o3dPoints_;

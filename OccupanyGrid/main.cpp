@@ -3,7 +3,9 @@
 
 #include "OccupancyGrid.h"
 
-constexpr u_int32_t NUM_SIM_STEPS = 500;
+#include "TimeUtil.h"
+
+constexpr u_int32_t NUM_SIM_STEPS = 5000;
 
 int main()
 {
@@ -19,7 +21,7 @@ int main()
         u_int32_t simCtr = 0;
 
         // Setup the Occupancy Grid
-        OccupancyGrid oGrid(100.0, 100.0, 1.0);
+        OccupancyGrid oGrid(400, 200, 0.25, 0.1, 0.05); // long,lat,res
 
         while (simCtr < NUM_SIM_STEPS)
         {
@@ -34,9 +36,14 @@ int main()
             simCtr++;
 
             // Update the occupancy grid
+            auto t0 = time_util::chronoNow();
             oGrid.UpdateGrid(lidarDataPtr);
-
+            auto t1 = time_util::chronoNow();
             oGrid.ShowGrid();
+            auto t2 = time_util::chronoNow();
+
+            time_util::showTimeDuration(t1, t0, "update: ");
+            time_util::showTimeDuration(t2, t1, "show  : ");
 
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
