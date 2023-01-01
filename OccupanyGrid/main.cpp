@@ -1,8 +1,6 @@
 
 #include "CarlaSim.h"
-
 #include "OccupancyGrid.h"
-
 #include "TimeUtil.h"
 
 constexpr u_int32_t NUM_SIM_STEPS = 5000;
@@ -37,7 +35,8 @@ int main()
 
             // Update the occupancy grid
             auto t0 = time_util::chronoNow();
-            oGrid.UpdateGrid(lidarDataPtr);
+            // oGrid.UpdateGridNaive(lidarDataPtr);
+            oGrid.UpdateGridBresenham(lidarDataPtr);
             auto t1 = time_util::chronoNow();
             oGrid.ShowGrid();
             auto t2 = time_util::chronoNow();
@@ -46,6 +45,7 @@ int main()
             time_util::showTimeDuration(t2, t1, "show  : ");
 
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            // getchar();
         }
 
         carlaSim.Terminate();

@@ -30,7 +30,7 @@ boost::shared_ptr<cc::Vehicle> CarlaSim::SpawnVehicle()
 {
     // Get a random vehicle blueprint.
     blueprintLib_   = world_->GetBlueprintLibrary();
-    auto vehicle_bp = blueprintLib_->Find("vehicle.volkswagen.t2");
+    auto vehicle_bp = blueprintLib_->Find("vehicle.bh.crossbike");
     // // auto blueprint = RandomChoice(*vehicles, rng);
 
     // // Find a valid spawn point.
@@ -44,6 +44,7 @@ boost::shared_ptr<cc::Vehicle> CarlaSim::SpawnVehicle()
     vehicle_ = boost::static_pointer_cast<cc::Vehicle>(actor);
 
     vehicle_->SetAutopilot(true);
+    client_->GetInstanceTM().SetPercentageRunningLight(vehicle_, 100.0f);
 
     // boost::shared_ptr<cc::Vehicle> vehiclePtr{vehicle_};
     // return vehiclePtr;
@@ -136,16 +137,16 @@ void CarlaSim::Terminate()
 void CarlaSim::SetupCloudViz()
 {
     // setup visualization
-    o3dCloudVis_.CreateVisualizerWindow("Lidar data", 960, 540, 480, 270);
+    o3dCloudVis_.CreateVisualizerWindow("Lidar data", 960, 540, 50, 50);
     o3dCloudVis_.GetRenderOption().background_color_      = {0.05, 0.05, 0.05};
-    o3dCloudVis_.GetRenderOption().point_size_            = 1;
+    o3dCloudVis_.GetRenderOption().point_size_            = 2;
     o3dCloudVis_.GetRenderOption().show_coordinate_frame_ = true;
 
     // Create initial cloud to determine the bounding box of the viewer
-    o3dPoints_.push_back({-100.0, -100.0, 1.0});
-    o3dPoints_.push_back({-100.0, 100.0, 2.0});
-    o3dPoints_.push_back({100.0, 100.0, 3.0});
-    o3dPoints_.push_back({100.0, -100.0, 4.0});
+    o3dPoints_.push_back({-70.0, -70.0, 1.0});
+    o3dPoints_.push_back({-70.0, 70.0, 2.0});
+    o3dPoints_.push_back({70.0, 70.0, 3.0});
+    o3dPoints_.push_back({70.0, -70.0, 4.0});
     o3dCloud_ = std::make_shared<open3d::geometry::PointCloud>(o3dPoints_);
     o3dCloudVis_.AddGeometry(o3dCloud_);
 }
@@ -166,6 +167,7 @@ void CarlaSim::UpdateCloudViz(boost::shared_ptr<SemanticLidarData> pointcloudPtr
     o3dCloudVis_.UpdateGeometry(o3dCloud_);
     o3dCloudVis_.PollEvents();
     o3dCloudVis_.UpdateRender();
+    o3dCloudVis_.GetViewControl();
 }
 
 void CarlaSim::CarlaToRoboticsTransform(const cg::Transform &carlaPose, Eigen::Matrix4f &roboticsPose)

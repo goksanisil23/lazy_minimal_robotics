@@ -20,13 +20,20 @@ class OccupancyGrid
                   const float &resolution,
                   const float &alpha,
                   const float &beta);
-    void UpdateGrid(const boost::shared_ptr<SemanticLidarData> &pointcloudPtr);
+    void UpdateGridNaive(const boost::shared_ptr<SemanticLidarData> &pointcloudPtr);
+    void UpdateGridBresenham(const boost::shared_ptr<SemanticLidarData> &pointcloudPtr);
     void InitGrid();
-    void InitVisualizer();
+    void InitGridVisualizer();
     void UpdateCellVis(const int &col, const int &row, const Eigen::Vector3d &color);
     void InverseMeasModel();
+    void UpdateCloudViz(boost::shared_ptr<SemanticLidarData> pointcloudPtr);
     void UpdateGridVis();
     void ShowGrid();
+
+    inline bool IsGroundHit(const carla::sensor::data::SemanticLidarDetection &hit);
+    inline bool IsAboveSensor(const carla::sensor::data::SemanticLidarDetection &hit);
+
+    std::tuple<int, int, bool> DiscretizePointToCell(const float &x, const float &y);
 
     std::vector<std::pair<int, int>> BresenhamLineCells(const int &x0, const int &y0, const int &x1, const int &y1);
 
@@ -36,6 +43,10 @@ class OccupancyGrid
                                             std::vector<float>                         &sensorRayBearings,
                                             std::vector<float>                         &sensorRayRanges);
 
+    void SortAndDiscretizePointloud(const boost::shared_ptr<SemanticLidarData> &pointcloudPtr,
+                                    std::vector<std::tuple<int, int, bool>>    &hitCells,
+                                    std::multimap<float, size_t>               &rangeSortedCloudIndices);
+
   private:
     const int   NUM_ROWS_;        // forward
     const int   NUM_COLS_;        // left
@@ -44,25 +55,24 @@ class OccupancyGrid
     const float ALPHA_; // [m.] determines the effected range for the cone
     const float BETA_;  // [rad.] determines the effected angle for the cone
 
-    const float SENSOR_RANGE_; // [m.]
+    // sensor position in grid coordinate system.
+    // Note that cell(0,0) does NOT correspond to x=0,y=0, since we center the grid at the sensor
+    // But the cell indices still start from bottom right
+    const float SENSOR_RANGE_;   // [m.]
+    const float SENSOR_POS_X_;   // [m.]
+    const float SENSOR_POS_Y_;   // [m.]
+    int         SENSOR_POS_COL_; // sensor position within the grid
+    int         SENSOR_POS_ROW_; // sensor position within the grid
 
-    struct Cell
+    struct Grid
     {
-        Cell() = default;
-        // Cell(const float &y, const float &x) : y_{y}, x_{x}
-        // {
-        // }
+        Grid() = default;
 
-        // Cell operator+(const Cell &other) const
-        // {
-        //     return Cell{this->y_ + other.y_, this->x_ + other.x_};
-        // }
-
-        float probOcc; // occupancy probability of the cell
-        // int   rowIdx, colIdx;   // row/col idx of the cell within the grid
-        float centerX, centerY; // center coordinate of the cell
-        float range;            // distance of the cell w.r.t sensor
-        float bearing;          // beaering of the cell w.r.t the sensor
+        // 2D grid data is stored row-wise (fill columns in a row, move to next row)
+        std::vector<float> probOcc;          // occupancy probability of the cells
+        std::vector<float> centerX, centerY; // center coordinate of the cells
+        std::vector<float> range;            // distance of the cells w.r.t sensor
+        std::vector<float> bearing;          // beaering of the cells w.r.t the sensor
     };
 
     // Grid coordinate system: X-forward, y-left, z-up. Bottom-middle edge is where sensor is.
@@ -71,7 +81,7 @@ class OccupancyGrid
     // ------------------------------------
     // ----------------v---------------(0,0)
 
-    std::vector<std::vector<Cell>> grid_;
+    Grid grid_;
 
     open3d::visualization::Visualizer               gridViz_;
     std::shared_ptr<open3d::geometry::TriangleMesh> triangleMesh_;
