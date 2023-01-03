@@ -73,7 +73,7 @@ State of the cells are propagated throughout the measurements. However, unlike t
 
 ## Grid Resolution
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/OccupancyGrid/resources/ogrid_cells.png" width=30% height=30%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/OccupancyGrid/resources/ogrid_cells.png" width=15% height=15%>
 
 For small objects, a couple of hits in the cell can be dominated by high number of other rays passing through that cell for behind objects. Decreasing the grid resolution would allow better capture of small objects with the cost of computation time. 
 
