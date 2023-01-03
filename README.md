@@ -24,6 +24,7 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [ ] Structure from Motion with Pose Graph Optimization
 - [ ] Dense Reconstruction via Multi-View Stereo
 - [ ] Factor graph object tracking
+- [x] 2D Occupancy Grid From 3D lidar
 - [ ] 3D Voxel Occupancy Grid (static and dynamic)
 - [ ] 3D signed distance field (euclidean and truncated)
 - [ ] Single & Multi object tracking --> tracking nba players in a video sequence?
