@@ -66,7 +66,7 @@ State of the cells are propagated throughout the measurements. However, unlike t
 >    - Ignore the shifted cells that falls outside of the grid boundaries.
 >    - Cells that are left unassigned by old cells are initialized with 0.5 probability.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/OccupancyGrid/resources/ogrid_lidar_carla.gif" width=30% height=30%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/OccupancyGrid/resources/ogrid_lidar_carla.gif" width=60% height=60%>
 
 > **Note**
 > The gray "dent" in front of the vehicle is due to getting no-returns from the lidar along the long corridors, since the walls at the end of the corridor is further than lidar's measurement range.  
