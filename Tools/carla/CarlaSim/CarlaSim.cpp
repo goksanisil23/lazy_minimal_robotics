@@ -30,13 +30,12 @@ boost::shared_ptr<cc::Vehicle> CarlaSim::SpawnVehicle()
 {
     // Get a random vehicle blueprint.
     blueprintLib_   = world_->GetBlueprintLibrary();
-    auto vehicle_bp = blueprintLib_->Find("vehicle.bh.crossbike");
-    // // auto blueprint = RandomChoice(*vehicles, rng);
+    auto vehicle_bp = blueprintLib_->Find("vehicle.audi.etron");
 
-    // // Find a valid spawn point.
-    auto map             = world_->GetMap();
-    auto spawnTransform  = map->GetRecommendedSpawnPoints()[0];
-    auto currentWaypoint = world_->GetMap()->GetWaypoint(spawnTransform.location);
+    // Find a valid spawn point.
+    auto map = world_->GetMap();
+    // auto spawnTransform = map->GetRecommendedSpawnPoints()[0];
+    cg::Transform spawnTransform(cg::Location(6.10894, 191.665, 0.3), cg::Rotation(0.134705, -0.813019, -0.0398865));
 
     // // Spawn the vehicle.
     auto actor = world_->SpawnActor(*vehicle_bp, spawnTransform);
@@ -46,8 +45,6 @@ boost::shared_ptr<cc::Vehicle> CarlaSim::SpawnVehicle()
     vehicle_->SetAutopilot(true);
     client_->GetInstanceTM().SetPercentageRunningLight(vehicle_, 100.0f);
 
-    // boost::shared_ptr<cc::Vehicle> vehiclePtr{vehicle_};
-    // return vehiclePtr;
     return vehicle_;
 }
 
@@ -60,24 +57,27 @@ boost::shared_ptr<cc::Sensor> CarlaSim::SpawnLidar()
     auto lidarTransform = cg::Transform{cg::Location{0.f, 0.0f, 2.8f},   // x, y, z.
                                         cg::Rotation{0.0f, 0.0f, 0.0f}}; // pitch, yaw, roll.
 
-    // auto &attribute = lidarBp->GetAttribute("upper_fov");
-    lidarBp.SetAttribute("upper_fov", "22.5");
-
     // lidarBp.SetAttribute("dropoff_general_rate", "0.0");
     // lidarBp.SetAttribute("dropoff_intensity_limit", "1.0");
     // lidarBp.SetAttribute("dropoff_zero_intensity", "0.0");
+
+    // 1D
+    // lidarBp.SetAttribute("upper_fov", "0");
+    // lidarBp.SetAttribute("lower_fov", "0");
+    // lidarBp.SetAttribute("channels", "1");
+    // lidarBp.SetAttribute("points_per_second", "100000");
+    // 3D
     lidarBp.SetAttribute("upper_fov", "22.5");
     lidarBp.SetAttribute("lower_fov", "-22.5");
     lidarBp.SetAttribute("channels", "64");
-    lidarBp.SetAttribute("range", "100.0");
     lidarBp.SetAttribute("points_per_second", "327680");
+
+    lidarBp.SetAttribute("range", "100.0");
     lidarBp.SetAttribute("rotation_frequency", "10");
     // lidarBp.SetAttribute("sensor_tick", "0.1");
     auto lidarActor = world_->SpawnActor(lidarBp, lidarTransform, vehicle_.get());
     lidar_          = boost::static_pointer_cast<cc::Sensor>(lidarActor);
 
-    // boost::shared_ptr<cc::Sensor> lidarPtr{lidar_};
-    // return lidarPtr;
     return lidar_;
 }
 
@@ -120,6 +120,9 @@ void CarlaSim::GetLidarData(boost::shared_ptr<SemanticLidarData> &lidarDataPtr)
 void CarlaSim::GetLidarPose(Eigen::Matrix4f &lidarPose)
 {
     CarlaToRoboticsTransform(lidar_->GetTransform(), lidarPose);
+    std::cout << "x " << lidar_->GetTransform().location.x << " y" << lidar_->GetTransform().location.y << " z"
+              << lidar_->GetTransform().location.z << " yaw" << lidar_->GetTransform().rotation.yaw << " pitch"
+              << lidar_->GetTransform().rotation.pitch << " roll" << lidar_->GetTransform().rotation.roll << std::endl;
 }
 
 void CarlaSim::Terminate()
@@ -137,7 +140,7 @@ void CarlaSim::Terminate()
 void CarlaSim::SetupCloudViz()
 {
     // setup visualization
-    o3dCloudVis_.CreateVisualizerWindow("Lidar data", 960, 540, 50, 50);
+    o3dCloudVis_.CreateVisualizerWindow("Lidar data", 960, 960, 50, 50);
     o3dCloudVis_.GetRenderOption().background_color_      = {0.05, 0.05, 0.05};
     o3dCloudVis_.GetRenderOption().point_size_            = 2;
     o3dCloudVis_.GetRenderOption().show_coordinate_frame_ = true;

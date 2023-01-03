@@ -21,17 +21,22 @@ class OccupancyGrid
                   const float &alpha,
                   const float &beta);
     void UpdateGridNaive(const boost::shared_ptr<SemanticLidarData> &pointcloudPtr);
-    void UpdateGridBresenham(const boost::shared_ptr<SemanticLidarData> &pointcloudPtr);
+    void UpdateGridBresenhamOneShot(const boost::shared_ptr<SemanticLidarData> &pointcloudPtr);
+    void UpdateGridBresenhamCumulative(const boost::shared_ptr<SemanticLidarData> &pointcloudPtr,
+                                       const Eigen::Matrix4f                      &lidarPose);
+    void PropagateGrid(const Eigen::Matrix4f &lidarPose);
     void InitGrid();
     void InitGridVisualizer();
     void UpdateCellVis(const int &col, const int &row, const Eigen::Vector3d &color);
-    void InverseMeasModel();
+    void UpdateCellVisLogit(const int &col, const int &row, const float &prob);
     void UpdateCloudViz(boost::shared_ptr<SemanticLidarData> pointcloudPtr);
     void UpdateGridVis();
+    void UpdateGridVisLogit();
     void ShowGrid();
 
     inline bool IsGroundHit(const carla::sensor::data::SemanticLidarDetection &hit);
     inline bool IsAboveSensor(const carla::sensor::data::SemanticLidarDetection &hit);
+    inline bool IsIndexWithinGrid(const int &rowIdx, const int &colIdx);
 
     std::tuple<int, int, bool> DiscretizePointToCell(const float &x, const float &y);
 
@@ -39,13 +44,16 @@ class OccupancyGrid
 
     size_t FindClosestBearingRayToCell(const float &cellBearing, const std::vector<float> &sensorRayBearings);
 
-    void CalculateSensorRayRangeAndBearings(const boost::shared_ptr<SemanticLidarData> &pointcloudPtr,
-                                            std::vector<float>                         &sensorRayBearings,
-                                            std::vector<float>                         &sensorRayRanges);
+    void FilterAndCalculateSensorRayRangeAndBearings(const boost::shared_ptr<SemanticLidarData> &pointcloudPtr,
+                                                     std::vector<float>                         &sensorRayBearings,
+                                                     std::vector<float>                         &sensorRayRanges);
 
-    void SortAndDiscretizePointloud(const boost::shared_ptr<SemanticLidarData> &pointcloudPtr,
-                                    std::vector<std::tuple<int, int, bool>>    &hitCells,
-                                    std::multimap<float, size_t>               &rangeSortedCloudIndices);
+    void SortAndDiscretizePointloud(const boost::shared_ptr<SemanticLidarData>        &pointcloudPtr,
+                                    std::vector<std::tuple<int, int, bool>>           &hitCells,
+                                    std::multimap<float, size_t, std::greater<float>> &rangeSortedCloudIndices);
+
+    inline float Logit(const float &probability);
+    inline float RetrieveProb(const float &logit);
 
   private:
     const int   NUM_ROWS_;        // forward
@@ -63,6 +71,9 @@ class OccupancyGrid
     const float SENSOR_POS_Y_;   // [m.]
     int         SENSOR_POS_COL_; // sensor position within the grid
     int         SENSOR_POS_ROW_; // sensor position within the grid
+
+    const float THRESH_P_OCCUPIED_; // probability above which cell is considered occupied
+    const float THRESH_P_FREE_;     // probability below which cell is considered free
 
     struct Grid
     {

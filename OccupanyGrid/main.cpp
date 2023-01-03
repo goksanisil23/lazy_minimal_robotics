@@ -19,8 +19,9 @@ int main()
         u_int32_t simCtr = 0;
 
         // Setup the Occupancy Grid
-        OccupancyGrid oGrid(400, 200, 0.25, 0.1, 0.05); // long,lat,res
+        OccupancyGrid oGrid(400, 200, 0.25, 0.1, 0.05); // long,lat,res,alpha,beta
 
+        bool freeMode{false};
         while (simCtr < NUM_SIM_STEPS)
         {
             // Iterate the sim
@@ -36,7 +37,11 @@ int main()
             // Update the occupancy grid
             auto t0 = time_util::chronoNow();
             // oGrid.UpdateGridNaive(lidarDataPtr);
-            oGrid.UpdateGridBresenham(lidarDataPtr);
+            // if (simCtr < 100)
+            // oGrid.UpdateGridBresenhamOneShot(lidarDataPtr);
+            // else
+            oGrid.UpdateGridBresenhamCumulative(lidarDataPtr, lidarPose);
+            std::cout << " -----------ctr ----------\n" << simCtr << std::endl;
             auto t1 = time_util::chronoNow();
             oGrid.ShowGrid();
             auto t2 = time_util::chronoNow();
@@ -45,7 +50,14 @@ int main()
             time_util::showTimeDuration(t2, t1, "show  : ");
 
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
-            // getchar();
+            if (!freeMode)
+            {
+                int c = getchar();
+                if (c == 's')
+                {
+                    freeMode = true;
+                }
+            }
         }
 
         carlaSim.Terminate();
