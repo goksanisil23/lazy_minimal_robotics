@@ -15,3 +15,7 @@ Stereo datasets:
     - http://www.cvlibs.net/datasets/kitti/eval_stereo_flow.php
     - https://roboimagedata.compute.dtu.dk/?page id=36
     - https://www.eth3d.net
+
+Visual Object Tracking datasets:
+- https://www.votchallenge.net/vot2013/dataset.html
+- http://cvlab.hanyang.ac.kr/tracker_benchmark/datasets.html
