@@ -12,7 +12,7 @@
 namespace
 {
 constexpr double EPS        = 0.00001; // epsilon to avoid division by 0 in normalization
-constexpr double LEARN_RATE = 0.2;     // learning rate for the model update
+constexpr double LEARN_RATE = 0.75;    // learning rate for the model update
 constexpr double PSR_THRESH = 5.7;     // Peak-to-sidelobe ratio threshold for acceptable tracking
 } // namespace
 
@@ -69,7 +69,7 @@ class Mosse : public VisualTracker
 
         // update A ,B, and H
         A_ = A_ * (1 - LEARN_RATE) + A_i * LEARN_RATE;
-        B_ = B_ * (1 - LEARN_RATE) + A_i * LEARN_RATE;
+        B_ = B_ * (1 - LEARN_RATE) + B_i * LEARN_RATE;
         H_ = divideDFTs(A_, B_);
 
         prevBbox_ = curBbox;
@@ -169,6 +169,28 @@ class Mosse : public VisualTracker
         inImg = ((inImg - mean[0]) / (stdDev[0] + EPS)).mul(cosineWindow_);
     }
 
+    cv::Mat randomWarp(const cv::Mat &inImg) const
+    {
+        static cv::RNG rng(8031965);
+
+        // random rotation
+        double C   = 0.1;
+        double ang = rng.uniform(-C, C);
+        double c = cos(ang), s = sin(ang);
+        // affine warp matrix
+        cv::Mat_<float> W(2, 3);
+        W << c + rng.uniform(-C, C), -s + rng.uniform(-C, C), 0, s + rng.uniform(-C, C), c + rng.uniform(-C, C), 0;
+
+        // random translation
+        cv::Mat_<float> center_warp(2, 1);
+        center_warp << inImg.cols / 2, inImg.rows / 2;
+        W.col(2) = center_warp - (W.colRange(0, 2)) * center_warp;
+
+        cv::Mat warped;
+        cv::warpAffine(inImg, warped, W, inImg.size(), cv::BORDER_REFLECT);
+        return warped;
+    }
+
     // Given the reference object patch we want to track and the ideal response G,
     // creates the initial filter H by training on the warped variants of the reference object
     void PreTrain(cv::Mat &refObjPatch)
@@ -182,9 +204,19 @@ class Mosse : public VisualTracker
         cv::mulSpectrums(G_, F_i, A_, 0, true);
         cv::mulSpectrums(F_i, F_i, B_, 0, true);
 
-        //         fi = pre_process(fi)
-        // Ai = G * np.conjugate(np.fft.fft2(fi))
-        // Bi = np.fft.fft2(init_frame) * np.conjugate(np.fft.fft2(init_frame))
+        // Warp the image in various ways for training
+        for (int i = 0; i < 8; i++)
+        {
+            cv::Mat warpedPatch = randomWarp(origRefObjPatch);
+            Preprocess(warpedPatch);
+
+            cv::Mat F_i, A_i, B_i;
+            cv::dft(warpedPatch, F_i, cv::DFT_COMPLEX_OUTPUT);
+            cv::mulSpectrums(G_, F_i, A_i, 0, true);
+            cv::mulSpectrums(F_i, F_i, B_i, 0, true);
+            A_ += A_i;
+            B_ += B_i;
+        }
 
         H_ = divideDFTs(A_, B_);
     }

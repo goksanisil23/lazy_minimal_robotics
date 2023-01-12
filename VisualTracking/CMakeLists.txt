@@ -49,13 +49,13 @@ SET(TARGET_NAME lmr_tracker)
 SET(${TARGET_NAME}_sources main.cpp)
 OCV_BUILD(${TARGET_NAME} ${${TARGET_NAME}_sources})
 
-# SET(TARGET_NAME OCV_TRACKERS_FILE)
-# SET(${TARGET_NAME}_sources opencv_trackers_file.cpp)
-# OCV_BUILD(${TARGET_NAME} "${TARGET_NAME}_sources")
+SET(TARGET_NAME lmr_tracker_lasot)
+SET(${TARGET_NAME}_sources main_lasot_lmr.cpp)
+OCV_BUILD(${TARGET_NAME} ${${TARGET_NAME}_sources})
 
-# SET(TARGET_NAME OCV_TRACKERS_CAMERA)
-# SET(${TARGET_NAME}_sources opencv_trackers_camera.cpp)
-# OCV_BUILD(${TARGET_NAME} "${TARGET_NAME}_sources")
+SET(TARGET_NAME ocv_tracker_lasot)
+SET(${TARGET_NAME}_sources main_lasot_ocv.cpp)
+OCV_BUILD(${TARGET_NAME} ${${TARGET_NAME}_sources})
 
 
 
