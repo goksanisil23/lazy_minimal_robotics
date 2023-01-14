@@ -15,8 +15,8 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [x] [Particle filter](/ParticleFilter)
 - [x] [ICP](/ICP)
 - [x] [Homography](/Homography)
-- [x] [Indirect Monocular Visual Odometry with SIFT/ORB features](/VisualOdometry/Indirect/matching)
-- [x] [Indirect Monocular Visual Odometry with Sparse Optical Flow](/VisualOdometry/Indirect/tracking)
+- [x] [Indirect Monocular Visual Odometry: Feature Matching](/VisualOdometry/Indirect/matching)
+- [x] [Indirect Monocular Visual Odometry: Feature Tracking](/VisualOdometry/Indirect/tracking)
 - [x] [Stereo Vision Depth Estimation](/StereoDepth)
 - [ ] Direct Monocular Visual Odometry
 - [ ] Direct with GPU

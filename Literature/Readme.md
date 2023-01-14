@@ -19,3 +19,4 @@ Stereo datasets:
 Visual Object Tracking datasets:
 - https://www.votchallenge.net/vot2013/dataset.html
 - http://cvlab.hanyang.ac.kr/tracker_benchmark/datasets.html
+- http://vision.cs.stonybrook.edu/~lasot/download.html

@@ -1,4 +1,5 @@
 # Visual Odometry Via Sparse Optical Flow Corner Feature Tracking
+*The main difference of this method compared to VO via feature matching is that, after calculating the keypoints in an image, instead of computing the descriptors and doing descriptor matching, keypoints are tracked from k to k+1 via optical flow.*
 
 The goal of optical flow is to generate a 2D flow field that describes how the pixels in the image are moving in time to create a representation of the dynamics of the scene.
 
@@ -14,7 +15,7 @@ Since we assume the brightness remains constant over small dt for the point of i
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/tracking/resources/optical_flow_constraint.png" width=50% height=50%>
 
-where `Ix, Iy, It` are the changes in the intensity in x,y directions and in time, that can be computed with finite differences:
+where `u = dx/dt, v=dy/dt` is the optical flow and `Ix, Iy, It` are the changes in the intensity in x,y directions and in time, that can be computed with finite differences:
 
 `Ix = 1/4 * {I(x+1,y,t) + I(x+1,y+1,t) + I(x+1,y,t+1) - I(x+1,y+1,t+1)} - 1/4 * {I(x,y,t) + I(x,y+1,t) + I(x,y,t+1) - I(x,y+1,t+1)}`
 
