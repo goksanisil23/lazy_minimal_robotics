@@ -44,13 +44,13 @@ In this implementation, we use the aforementioned image pyramids and Gauss-Newto
 >- Build the image pyramids for frame `[k]` & `[k+1]` 
 >- Scale the keypoints of image `[k]` for the top level of the pyramid (lowest resolution)
 >- For each layer of the pyramid:
-    >- For each keypoint:
-        >- Get initial `Δx, Δy` from the previous pyramid layer.
-        >- For N Gauss-Newton iterations (or until convergence):
-            >- For each pixel inside the keypoint patch window:
-                >- Calculate the residual: `I_(k)(x,y) - I_(k+1)(x+Δx,y+Δy)`
-                >- Accumulate the bias, cost and hessian based on the residual
-            >- Update Δx, Δy based on the solution of `update = bias * inv(Hessian)`
+>    - For each keypoint:
+>        - Get initial `Δx, Δy` from the previous pyramid layer.
+>        - For N Gauss-Newton iterations (or until convergence):
+>            - For each pixel inside the keypoint patch window:
+>                - Calculate the residual: `I_(k)(x,y) - I_(k+1)(x+Δx,y+Δy)`
+>                - Accumulate the bias, cost and hessian based on the residual
+>            - Update Δx, Δy based on the solution of `update = bias * inv(Hessian)`
 
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/OpticalFlow/resources/optical_flow_sparse.png" width=50% height=50%>
