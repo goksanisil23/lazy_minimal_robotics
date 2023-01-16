@@ -15,10 +15,10 @@ class OpticalFlowSparse
     // ------------ Class Constants  ------------ //
 
     // determines the size of the window around a pixel point to calculate the flow field
-    static constexpr int    HALF_NEIGHBORHOOD_SIZE{4};
-    static constexpr int    MAX_DETECTOR_CORNERS{500};
-    static constexpr double DETECTOR_QUALITY_LEVEL{0.01};
-    // static constexpr double DETECTOR_QUALITY_LEVEL{0.1};
+    static constexpr int    DETECTOR_BLOCK_SIZE{8};
+    static constexpr int    HALF_NEIGHBORHOOD_SIZE{DETECTOR_BLOCK_SIZE};
+    static constexpr int    MAX_DETECTOR_CORNERS{100};
+    static constexpr double DETECTOR_QUALITY_LEVEL{0.3};
     static constexpr double DETECTOR_MIN_PIX_DIST_KPS{20.0};
     static constexpr int    NUM_GAUSS_NEWTON_ITERS{10};
     static constexpr float  GAUSS_NEWTON_CONV_THRESH_NORM{1e-2};
@@ -40,7 +40,7 @@ class OpticalFlowSparse
             FALSE = (1 << 1)
         };
 
-        bool  useInvFormulation{false};
+        bool  useInvFormulation{true};
         LEVEL level{LEVEL::MULTI};
         int   halfWinSize{HALF_NEIGHBORHOOD_SIZE};
     };
@@ -50,11 +50,12 @@ class OpticalFlowSparse
     OpticalFlowSparse();
     OpticalFlowSparse(const OpticalFlowConfig &config);
 
-    void         Step(const cv::Mat             &img1,
-                      const cv::Mat             &img2,
-                      std::vector<cv::KeyPoint> &kpsImg1Out,
-                      std::vector<cv::KeyPoint> &kpsImg2Out,
-                      std::vector<bool>         &isFlowOkOut);
+    void         Detect(const cv::Mat &img1, std::vector<cv::KeyPoint> &kpsImg1Out);
+    void         Track(const cv::Mat                   &img1,
+                       const cv::Mat                   &img2,
+                       const std::vector<cv::KeyPoint> &kpsImg1In,
+                       std::vector<cv::KeyPoint>       &kpsImg2Out,
+                       std::vector<bool>               &isFlowOkOut);
     void         ComputeFlowSparse(const std::vector<cv::KeyPoint>  &kpsImg1In,
                                    std::vector<cv::KeyPoint>        &kpsImg2Out,
                                    std::vector<bool>                &isFlowOkOut,

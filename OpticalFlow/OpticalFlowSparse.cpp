@@ -2,8 +2,8 @@
 
 OpticalFlowSparse::OpticalFlowSparse()
 {
-    featureDetector_ =
-        cv::GFTTDetector::create(MAX_DETECTOR_CORNERS, DETECTOR_QUALITY_LEVEL, DETECTOR_MIN_PIX_DIST_KPS);
+    featureDetector_ = cv::GFTTDetector::create(
+        MAX_DETECTOR_CORNERS, DETECTOR_QUALITY_LEVEL, DETECTOR_MIN_PIX_DIST_KPS, DETECTOR_BLOCK_SIZE);
 
     // Image pyramic config
     pyrScales_.at(0) = 1.0;
@@ -18,11 +18,19 @@ OpticalFlowSparse::OpticalFlowSparse(const OpticalFlowConfig &config) : OpticalF
     config_ = std::move(config);
 }
 
-void OpticalFlowSparse::Step(const cv::Mat             &img1,
-                             const cv::Mat             &img2,
-                             std::vector<cv::KeyPoint> &kpsImg1Out,
-                             std::vector<cv::KeyPoint> &kpsImg2Out,
-                             std::vector<bool>         &isFlowOkOut)
+void OpticalFlowSparse::Detect(const cv::Mat &img1, std::vector<cv::KeyPoint> &kpsImg1Out)
+{
+    auto t0 = time_util::chronoNow();
+    featureDetector_->detect(img1, kpsImg1Out);
+    auto t1 = time_util::chronoNow();
+    time_util::showTimeDuration(t1, t0, "Feature detection: ");
+}
+
+void OpticalFlowSparse::Track(const cv::Mat                   &img1,
+                              const cv::Mat                   &img2,
+                              const std::vector<cv::KeyPoint> &kpsImg1In,
+                              std::vector<cv::KeyPoint>       &kpsImg2Out,
+                              std::vector<bool>               &isFlowOkOut)
 {
     if (img1.channels() > 1)
         cv::cvtColor(img1, image1_, cv::COLOR_BGR2GRAY);
@@ -38,42 +46,30 @@ void OpticalFlowSparse::Step(const cv::Mat             &img1,
 
     case OpticalFlowConfig::LEVEL::SINGLE:
     {
+        kpsImg2Out.resize(kpsImg1In.size());
+        isFlowOkOut.resize(kpsImg1In.size());
+
         auto t0 = time_util::chronoNow();
-
-        std::vector<cv::KeyPoint> kpsImg1;
-        featureDetector_->detect(img1, kpsImg1);
-
+        ComputeFlowSparse(kpsImg1In, kpsImg2Out, isFlowOkOut, OpticalFlowConfig::USE_INIT_GUESS::FALSE);
         auto t1 = time_util::chronoNow();
+        time_util::showTimeDuration(t1, t0, "Single layer oflow: ");
 
-        std::vector<cv::KeyPoint> kpsImg2(kpsImg1.size());
-        std::vector<bool>         isFlowOk(kpsImg1.size());
-
-        ComputeFlowSparse(kpsImg1, kpsImg2, isFlowOk, OpticalFlowConfig::USE_INIT_GUESS::FALSE);
-
-        auto t2 = time_util::chronoNow();
-
-        time_util::showTimeDuration(t1, t0, "Feature detection: ");
-        time_util::showTimeDuration(t2, t1, "Single layer oflow: ");
-
-        ShowSparseFlow(img2, kpsImg1, kpsImg2, isFlowOk);
+        ShowSparseFlow(img2, kpsImg1In, kpsImg2Out, isFlowOkOut);
         break;
     }
 
     case OpticalFlowConfig::LEVEL::MULTI:
     {
-        auto                      t0 = time_util::chronoNow();
-        std::vector<cv::KeyPoint> kpsImg1;
-        featureDetector_->detect(img1, kpsImg1);
-        auto t1 = time_util::chronoNow();
 
-        std::vector<cv::KeyPoint> kpsImg2(kpsImg1.size());
-        std::vector<bool>         isFlowOk(kpsImg1.size());
+        kpsImg2Out.resize(kpsImg1In.size());
+        isFlowOkOut.resize(kpsImg1In.size());
 
+        auto t0 = time_util::chronoNow();
         // 1) Create the image pyramids
         std::vector<cv::Mat> img1Pyra(NUM_PYRAMID_LEVELS);
         std::vector<cv::Mat> img2Pyra(NUM_PYRAMID_LEVELS);
-        img1Pyra.at(0) = img1;
-        img2Pyra.at(0) = img2;
+        img1Pyra.at(0) = image1_;
+        img2Pyra.at(0) = image2_;
         for (size_t pyLvlIdx = 1; pyLvlIdx < NUM_PYRAMID_LEVELS; pyLvlIdx++)
         {
             cv::Mat img1Scaled, img2Scaled;
@@ -88,12 +84,12 @@ void OpticalFlowSparse::Step(const cv::Mat             &img1,
             img1Pyra.at(pyLvlIdx) = img1Scaled;
             img2Pyra.at(pyLvlIdx) = img2Scaled;
         }
-        auto t2 = time_util::chronoNow();
-        ShowImagePyramid(img1Pyra);
+        auto t1 = time_util::chronoNow();
+        // ShowImagePyramid(img1Pyra);
 
         // 2) Recalculate the keypoints in the coarsest (top) level
         // since we go from coarse to fine in optical flow
-        std::vector<cv::KeyPoint> kpsImg1Pyr(kpsImg1); // keypoints of image 1 at the current pyramid level
+        std::vector<cv::KeyPoint> kpsImg1Pyr(kpsImg1In); // keypoints of image 1 at the current pyramid level
         for (auto &kpImg1 : kpsImg1Pyr)
         {
             kpImg1.pt *= pyrScales_.back();
@@ -103,12 +99,11 @@ void OpticalFlowSparse::Step(const cv::Mat             &img1,
         // 3) Run Optical Flow from top to bottom layer
         for (int pyrLvlIdx = NUM_PYRAMID_LEVELS - 1; pyrLvlIdx >= 0; pyrLvlIdx--)
         {
-            isFlowOk.resize(kpsImg1Pyr.size());
             // Update the source and destination images for optical flow
             image1_ = img1Pyra.at(pyrLvlIdx);
             image2_ = img2Pyra.at(pyrLvlIdx);
             // Run the oflow
-            ComputeFlowSparse(kpsImg1Pyr, kpsImg2Pyr, isFlowOk, OpticalFlowConfig::USE_INIT_GUESS::TRUE);
+            ComputeFlowSparse(kpsImg1Pyr, kpsImg2Pyr, isFlowOkOut, OpticalFlowConfig::USE_INIT_GUESS::TRUE);
 
             // Upscale the keypoints since we're going down pyramid layer
             if (pyrLvlIdx != 0)
@@ -121,19 +116,14 @@ void OpticalFlowSparse::Step(const cv::Mat             &img1,
             }
         }
 
-        kpsImg2 = kpsImg2Pyr;
+        kpsImg2Out = kpsImg2Pyr;
 
-        auto t3 = time_util::chronoNow();
+        auto t2 = time_util::chronoNow();
 
-        time_util::showTimeDuration(t1, t0, "Feature detection: ");
-        time_util::showTimeDuration(t2, t1, "Pyramid creation : ");
-        time_util::showTimeDuration(t3, t2, "Pyramid oflow    : ");
+        time_util::showTimeDuration(t1, t0, "Pyramid creation : ");
+        time_util::showTimeDuration(t2, t1, "Pyramid oflow    : ");
 
-        ShowSparseFlow(img2, kpsImg1, kpsImg2, isFlowOk);
-
-        kpsImg1Out  = kpsImg1;
-        kpsImg2Out  = kpsImg2;
-        isFlowOkOut = isFlowOk;
+        // ShowSparseFlow(img2, kpsImg1In, kpsImg2Out, isFlowOkOut);
 
         break;
     }
@@ -167,14 +157,22 @@ void OpticalFlowSparse::ComputeFlowSparse(const std::vector<cv::KeyPoint>  &kpsI
 
         // Gauss-Newton iterations
         Eigen::Matrix2d H    = Eigen::Matrix2d::Zero(); // Hessian
-        Eigen::Vector2d bias = Eigen::Vector2d::Zero(); // bias
+        Eigen::Vector2d bias = Eigen::Vector2d::Zero(); // cumulative bias for the image patch
         Eigen::Vector2d J;                              // Jacobian
 
         for (int iter = 0; iter < NUM_GAUSS_NEWTON_ITERS; iter++)
         {
-            H    = Eigen::Matrix2d::Zero();
-            bias = Eigen::Vector2d::Zero(); // cumulative bias for the image patch
-            cost = 0;                       // cumulative cost for the image patch
+            if (!config_.useInvFormulation)
+            {
+                H    = Eigen::Matrix2d::Zero();
+                bias = Eigen::Vector2d::Zero();
+            }
+            else
+            {
+                bias = Eigen::Vector2d::Zero();
+            }
+
+            cost = 0; // cumulative cost for the image patch
             // Compute Jacobian and cost for the image patch
             for (int x = -HALF_NEIGHBORHOOD_SIZE; x < HALF_NEIGHBORHOOD_SIZE; x++)
             {
@@ -185,15 +183,26 @@ void OpticalFlowSparse::ComputeFlowSparse(const std::vector<cv::KeyPoint>  &kpsI
                     // Estimation model: Intensity of the of the displaced pixel (with current delta estimation) in the next image
                     float residual = GetPixelValue(image1_, kp.pt.x + x, kp.pt.y + y) -
                                      GetPixelValue(image2_, kp.pt.x + x + dx, kp.pt.y + y + dy);
-                    J = -1.0 *
-                        Eigen::Vector2d(0.5 * (GetPixelValue(image2_, (kp.pt.x + x) + dx + 1, (kp.pt.y + y) + dy) -
-                                               GetPixelValue(image2_, (kp.pt.x + x) + dx - 1, (kp.pt.y + y) + dy)),
-                                        0.5 * (GetPixelValue(image2_, (kp.pt.x + x) + dx, (kp.pt.y + y) + dy + 1) -
-                                               GetPixelValue(image2_, (kp.pt.x + x) + dx, (kp.pt.y + y) + dy - 1)));
+                    if (!config_.useInvFormulation)
+                    {
+                        J = -1.0 *
+                            Eigen::Vector2d(0.5 * (GetPixelValue(image2_, (kp.pt.x + x) + dx + 1, (kp.pt.y + y) + dy) -
+                                                   GetPixelValue(image2_, (kp.pt.x + x) + dx - 1, (kp.pt.y + y) + dy)),
+                                            0.5 * (GetPixelValue(image2_, (kp.pt.x + x) + dx, (kp.pt.y + y) + dy + 1) -
+                                                   GetPixelValue(image2_, (kp.pt.x + x) + dx, (kp.pt.y + y) + dy - 1)));
+                    }
+                    else if (iter == 0)
+                    {
+                        J = -1.0 * Eigen::Vector2d(0.5 * (GetPixelValue(image1_, kp.pt.x + x + 1, kp.pt.y + y) -
+                                                          GetPixelValue(image1_, kp.pt.x + x - 1, kp.pt.y + y)),
+                                                   0.5 * (GetPixelValue(image1_, kp.pt.x + x, kp.pt.y + y + 1) -
+                                                          GetPixelValue(image1_, kp.pt.x + x, kp.pt.y + y - 1)));
+                    }
 
                     bias += -residual * J;
                     cost += residual * residual;
-                    H += J * J.transpose();
+                    if (!config_.useInvFormulation || iter == 0)
+                        H += J * J.transpose();
                 }
             }
 
@@ -268,7 +277,7 @@ void OpticalFlowSparse::ShowSparseFlow(const cv::Mat                   &img2,
         if (isFlowOk.at(kpIdx))
         {
             cv::circle(img2Bgr, kpsImg2[kpIdx].pt, 2, cv::Scalar(0, 250, 0), 2);
-            cv::line(img2Bgr, kpsImg1[kpIdx].pt, kpsImg2[kpIdx].pt, cv::Scalar(0, 250, 0), 3);
+            cv::line(img2Bgr, kpsImg2[kpIdx].pt, kpsImg1[kpIdx].pt, cv::Scalar(0, 250, 0), 3);
         }
     }
     cv::imshow("oflow", img2Bgr);

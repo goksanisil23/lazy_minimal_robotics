@@ -1,4 +1,5 @@
 # Optical Flow
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/OpticalFlow/resources/sparse_oflow_traffic.gif" width=50% height=50%>
 
 The goal of optical flow is to generate a 2D flow field that describes how the pixels in the image are moving in time to create a representation of the dynamics of the scene.
 

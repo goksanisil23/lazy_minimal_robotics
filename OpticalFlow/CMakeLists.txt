@@ -79,3 +79,7 @@ SET(TARGET_NAME tracker_oflow)
 SET(${TARGET_NAME}_sources oflow_sparse.cpp OpticalFlowSparse.cpp)
 OCV_BUILD(${TARGET_NAME} "${${TARGET_NAME}_sources}")
 
+SET(TARGET_NAME ocv)
+SET(${TARGET_NAME}_sources oflow_opencv.cpp)
+OCV_BUILD(${TARGET_NAME} "${${TARGET_NAME}_sources}")
+
