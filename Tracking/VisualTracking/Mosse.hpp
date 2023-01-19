@@ -109,8 +109,8 @@ class Mosse : public VisualTracker
     }
 
   private:
-    // Correlates the image Patch from current frame (k) against the bounding box
-    // obtained at the previous step (k-1). If nothing has changed since [k], we expect to
+    // Correlates the image Patch from current frame (k) (created with bbox at k-1) against the
+    // "learnt" image patch obtained till (k-1). If nothing has changed since [k], we expect to
     // get a perfectly centered Gaussian. If the object of interest has moved, correlating
     // with the previous bounding box would result in a "shifted" Gaussian.
     // This "shift" tells us how much we should move the previous bounding box to track tbe object.

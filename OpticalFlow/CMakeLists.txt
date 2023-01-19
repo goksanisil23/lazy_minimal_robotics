@@ -63,23 +63,15 @@ ENDFUNCTION()
 
 # Target specifics
 
-# SET(TARGET_NAME lmr_tracker_lasot)
-# SET(${TARGET_NAME}_sources main_lasot_lmr.cpp)
-# OCV_BUILD(${TARGET_NAME} ${${TARGET_NAME}_sources})
-
-# SET(TARGET_NAME ocv_tracker_lasot)
-# SET(${TARGET_NAME}_sources main_lasot_ocv.cpp)
-# OCV_BUILD(${TARGET_NAME} ${${TARGET_NAME}_sources})
-
-# SET(TARGET_NAME ocv_legacy_tracker_lasot)
-# SET(${TARGET_NAME}_sources main_lasot_ocv_legacy.cpp)
-# OCV_BUILD(${TARGET_NAME} ${${TARGET_NAME}_sources})
-
 SET(TARGET_NAME tracker_oflow)
 SET(${TARGET_NAME}_sources oflow_sparse.cpp OpticalFlowSparse.cpp)
 OCV_BUILD(${TARGET_NAME} "${${TARGET_NAME}_sources}")
 
 SET(TARGET_NAME ocv)
 SET(${TARGET_NAME}_sources oflow_opencv.cpp)
+OCV_BUILD(${TARGET_NAME} "${${TARGET_NAME}_sources}")
+
+SET(TARGET_NAME dense)
+SET(${TARGET_NAME}_sources oflow_dense.cpp)
 OCV_BUILD(${TARGET_NAME} "${${TARGET_NAME}_sources}")
 
