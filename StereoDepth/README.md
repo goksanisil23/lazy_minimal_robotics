@@ -22,13 +22,16 @@ The benefit of having a horizontally (or vertically) and axis aligned baseline i
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/find_match_disparity.png" width=30% height=50%>
 
 This is due to both `v_l` and `v_r` having the same perspective projection:  `v_l = v_r = f_y * Y / Z + o_y`
-In order to avoid the pixel on the left camera being matched to a pixel on the right camera's horizontal strip, a block comparison is applied instead.
+In order to avoid the pixel on the left camera being wrongly matched to a pixel on the right camera's horizontal strip, a block comparison is applied instead.
 
-This can be seen as a **special case of the epipolar geometry**. In general, when 2 cameras that are separated by an *arbitrary translation and rotation* see the same 3D landmark, the search space for matching this landmark's pixel from one camera to the other reduces to a single line called **epipolar line**. When the cameras have a relative orientation, epipolar line will also be rotated with respect to the image axes. 
+> **Note**
+> This can be seen as a **special case of the epipolar geometry**. In general, when 2 cameras that are separated by an *arbitrary translation and rotation* see the same 3D landmark, the search space for matching this landmark's pixel from one camera to the other reduces to a single line called **epipolar line**. When the cameras have a relative orientation, epipolar line will also be rotated with respect to the image axes. 
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/epipolar_line.png" width=30% height=50%>
 
-Searching for feature correspondes between axis-aligned cameras is much simpler since it does not require computation of the epipolar line, as the line becomes horizontally (or vertically) level with the source camera's pixel. In practice though, not all stereo-camera setups can be perfectly axis aligned on the baseline. To still reap the benefits of axis-aligned stereo setup, **stereo rectification** can be applied to make epipolar lines horizontal. This process re-projects both camera image planes onto a common plane parallel to the baseline. It uses the Fundamental matrix to do so.
+Searching for feature correspondes between axis-aligned cameras is much simpler since it does not require computation of the epipolar line and finding pixels along that line, as the epipolar line becomes horizontally (or vertically) level with the camera's x/y-axes. 
+
+In practice though, not all stereo-camera setups can be perfectly axis aligned on the baseline. To still reap the benefits of axis-aligned stereo setup, **stereo rectification** can be applied to make the epipolar lines horizontal. This process re-projects both camera image planes onto a common plane parallel to the baseline between the cameras. It uses the [Fundamental Matrix](../VisualOdometry/Indirect/matching/) to do so.
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/StereoDepth/resources/rectification_diagram.png" width=30% height=50%>
 
