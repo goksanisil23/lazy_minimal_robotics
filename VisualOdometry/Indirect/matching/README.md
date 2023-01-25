@@ -24,7 +24,7 @@ In monocular visual odometry, in order to estimate the 3D pose of the camera, al
 
 Epipolar constraint, together with the inter-camera relation **`x_l = R*x_r + t`** forms the equation for the essential matrix. Fundamental property of essential matrix is that it can be decomposed into the translation and rotation components.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/essential_matrix_eq.png" width=30% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/essential_matrix_open_form.png" width=30% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/essential_matrix_eq.png" width=30% height=50%>
 
 However, xl and xr above are the 3D coordinates of the same scene point in 2 camera frames, which we do not have, hence we cannot directly use essential matrix to recover pose. 
 
