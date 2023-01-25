@@ -30,7 +30,7 @@ However, xl and xr above are the 3D coordinates of the same scene point in 2 cam
 
 Instead, we have the corresponding image coordinates. Incorporating perspective pinhole projection equations (3d->2d) into the essential matrix equation gives: 
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/fundamental_matrix_1.png" width=30% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/fundamental_matrix_2.png" width=30% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/fundamental_matrix_1.png" width=40% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/fundamental_matrix_2.png" width=40% height=50%>
 
 where K_l and K_r are the intrinsics of the cameras. The fundamental matrix maps a point in one image to a line (epiline) in the other image. Note that fundamental matrix F and kF describe the same epipolar geometry. So, F is only defined up-to-scale. With this loss of dof, we need at least 8 pixel correspondences between cameras to solve for F.
 
