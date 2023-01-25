@@ -24,6 +24,7 @@
 #include "TimeUtil.h"
 
 // #include "FeatureTracker.hpp"
+// #include "KalmanTracker.hpp"
 #include "Mosse.hpp"
 #include "OFlowTracker.hpp"
 #include "OpencvTrackers.hpp"
@@ -65,15 +66,23 @@ int main(int argc, char *argv[])
     cv::glob(imageFolder, imagePaths, true);
 
     // Create the tracker
-    std::unique_ptr<VisualTracker> tracker;
+    std::shared_ptr<VisualTracker> tracker;
     if (trackerName == "csrt")
-        tracker = std::make_unique<OpencvTracker>();
+        tracker = std::make_shared<OpencvTracker>();
     else if (trackerName == "oflow")
-        tracker = std::make_unique<OflowTracker>();
+        tracker = std::make_shared<OflowTracker>();
     else if (trackerName == "mosse")
-        tracker = std::make_unique<Mosse>();
+        tracker = std::make_shared<Mosse>();
     else if (trackerName == "staple")
-        tracker = std::make_unique<StapleTracker>();
+        tracker = std::make_shared<StapleTracker>();
+    // else if (trackerName == "kalman")
+    // {
+    //     tracker = std::make_shared<KalmanTracker>();
+    //     // Tuning
+    //     std::shared_ptr<KalmanTracker> kfPtr(std::dynamic_pointer_cast<KalmanTracker>(tracker));
+    //     kfPtr->Tune(gtBboxVec);
+    //     exit(0);
+    // }
     else
     {
         std::cerr << "no such tracker name" << std::endl;
@@ -112,7 +121,9 @@ int main(int argc, char *argv[])
                 tracker->Init(frame, refBbox);
             }
         }
-        t0        = time_util::chronoNow();
+        t0 = time_util::chronoNow();
+        if (frameCtr % 30 == 0)
+            bbox = refBbox;
         isTracked = tracker->Update(frame, bbox);
         t1        = time_util::chronoNow();
         time_util::showTimeDuration(t1, t0, "Track update: ");

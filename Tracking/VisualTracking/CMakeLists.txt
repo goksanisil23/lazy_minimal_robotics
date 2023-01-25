@@ -17,6 +17,9 @@ set(CMAKE_CXX_FLAGS "-std=c++17 -g -Wall")
 # Eigen
 find_package(Eigen3 REQUIRED)
 
+# Ceres
+find_package(Ceres REQUIRED)
+
 # OpenCV
 SET(OpenCV_DIR /usr/local/lib/cmake/opencv4)
 find_package(OpenCV REQUIRED )
@@ -35,6 +38,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 SET(LMR_TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../Tools)
 
 # Include dirs valid for all targets
+include_directories(${CERES_INCLUDE_DIRS})
 link_directories(${OpenCV_LIBRARY_DIRS})
 
 FUNCTION(OCV_BUILD executable_name sources)
@@ -48,6 +52,7 @@ FUNCTION(OCV_BUILD executable_name sources)
 
     target_link_libraries(${executable_name} PUBLIC
         ${OpenCV_LIBS}
+        ${CERES_LIBRARIES}
         OpenMP::OpenMP_CXX
     )
 
@@ -75,9 +80,12 @@ SET(${TARGET_NAME}_sources
     )
 OCV_BUILD(${TARGET_NAME} "${${TARGET_NAME}_sources}")
 
-SET(TARGET_NAME test)
+SET(TARGET_NAME tuner)
 SET(${TARGET_NAME}_sources 
-    test.cpp
+    tuner.cpp
+    KalmanTuner.cpp
+    KalmanErrorTerm.cpp
     ${LMR_TOOLS_DIR}/common/TimeUtil.cpp
+    
     )
 OCV_BUILD(${TARGET_NAME} "${${TARGET_NAME}_sources}")
