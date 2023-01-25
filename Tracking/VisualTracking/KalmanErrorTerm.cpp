@@ -21,12 +21,11 @@ bool KalmanErrorTerm::operator()(const T *const filterNoiseParamsPtr, T *residua
     stateTransMtx_(0, 2)                                         = dt;
     stateTransMtx_(1, 3)                                         = dt;
     Eigen::Matrix<double, measSize_, stateSize_> measMtx_        = Eigen::MatrixXd::Zero(measSize_, stateSize_);
-    measMtx_(0, 0)                                               = 1;
-    measMtx_(1, 1)                                               = 1;
-    measMtx_(2, 4)                                               = 1;
-    measMtx_(3, 5)                                               = 1;
+    measMtx_(0, 0)                                               = 1.0;
+    measMtx_(1, 1)                                               = 1.0;
+    measMtx_(2, 4)                                               = 1.0;
+    measMtx_(3, 5)                                               = 1.0;
     Eigen::Matrix<double, measSize_, measSize_> measNoiseMtx_ = Eigen::MatrixXd::Identity(measSize_, measSize_) * 1e-7;
-    // Eigen::Matrix<double, stateSize_, stateSize_> I           = Eigen::MatrixXd::Identity(stateSize_, stateSize_);
 
     // Templated vars
     Eigen::Vector<T, stateSize_> x_hat_;
@@ -92,7 +91,7 @@ T KalmanErrorTerm::IoU(const Eigen::Vector<double, 4> &gtBboxMes, const Eigen::V
     T intersectionX1 = std::min(T(gtBboxMes(0) - gtBboxMes(2) / 2.0), predState(0) - predState(4) / 2.0);
     T intersectionY1 = std::min(T(gtBboxMes(1) - gtBboxMes(3) / 2.0), predState(1) - predState(5) / 2.0);
     T intersectionX2 = std::min(T(gtBboxMes(0) + gtBboxMes(2) / 2.0), predState(0) + predState(4) / 2.0);
-    T intersectionY2 = std::min(T(gtBboxMes(1) + gtBboxMes(3)) / 2.0, predState(1) + predState(5) / 2.0);
+    T intersectionY2 = std::min(T(gtBboxMes(1) + gtBboxMes(3) / 2.0), predState(1) + predState(5) / 2.0);
 
     T intersectionH = std::max(intersectionY2 - intersectionY1, T(0.0));
     T intersectionW = std::max(intersectionX2 - intersectionX1, T(0.0));
