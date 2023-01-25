@@ -59,7 +59,8 @@ bool KalmanErrorTerm::operator()(const T *const filterNoiseParamsPtr, T *residua
 
         // Update residual before correction
         Eigen::Vector<T, stateSize_> x_hat(x_hat_);
-        residualsPtr[i - 1] = IoU(gtBboxMes, x_hat);
+        auto                         iou = IoU(gtBboxMes, x_hat);
+        residualsPtr[i - 1]              = 1.0 / (iou * iou);
 
         // Run measurement update every 10th frame
         if (i % 10 == 0)

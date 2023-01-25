@@ -1,9 +1,8 @@
 #include "KalmanTuner.h"
 #include "KalmanErrorTerm.h"
 
-KalmanTuner::KalmanTuner(const Eigen::VectorXd &x0)
+KalmanTuner::KalmanTuner() : filterNoiseParams(6, 0.5)
 {
-    x_hat_ = x0;
 }
 
 void KalmanTuner::Tune(const std::vector<cv::Rect> &gtBboxes)
@@ -12,15 +11,13 @@ void KalmanTuner::Tune(const std::vector<cv::Rect> &gtBboxes)
     ceres::LossFunction *lossFunc{nullptr};
 
     // Optimization parameters (Process noise & Measurement noise)
-    std::vector<double> filterNoiseParams(6, 0.5);
-    // std::vector<double> initState(6);
-    Eigen::Vector<double, 6> initState(GetStateFromBbox(gtBboxes.at(0)));
+    Eigen::Vector<double, 6> initState(Get6DStateFromBbox(gtBboxes.at(0)));
 
     std::vector<Eigen::Vector<double, 4>> gtBboxVec;
     for (size_t i = 1; i < gtBboxes.size(); i++)
     {
         const cv::Rect2d gtBbox(gtBboxes.at(i));
-        gtBboxVec.push_back(GetMeasFromBbox(gtBbox));
+        gtBboxVec.push_back(Get4DMeasFromBbox(gtBbox));
     }
 
     ceres::CostFunction *costFunc;
@@ -40,7 +37,7 @@ void KalmanTuner::Tune(const std::vector<cv::Rect> &gtBboxes)
 }
 
 // returns c_x,c_y,v_x,v_y,w,h
-Eigen::VectorXd KalmanTuner::GetStateFromBbox(const cv::Rect2d &bbox)
+Eigen::VectorXd KalmanTuner::Get6DStateFromBbox(const cv::Rect2d &bbox)
 {
     Eigen::VectorXd state{Eigen::VectorXd::Zero(stateSize_)};
     state(0) = bbox.tl().x + bbox.width / 2.0;
@@ -52,7 +49,7 @@ Eigen::VectorXd KalmanTuner::GetStateFromBbox(const cv::Rect2d &bbox)
 }
 
 // returns center_x, center_y, width, height
-Eigen::VectorXd KalmanTuner::GetMeasFromBbox(const cv::Rect2d &bbox) const
+Eigen::VectorXd KalmanTuner::Get4DMeasFromBbox(const cv::Rect2d &bbox)
 {
     Eigen::VectorXd meas{Eigen::VectorXd::Zero(measSize_)};
     meas(0) = bbox.tl().x + bbox.width / 2.0;
@@ -61,4 +58,12 @@ Eigen::VectorXd KalmanTuner::GetMeasFromBbox(const cv::Rect2d &bbox) const
     meas(3) = bbox.height;
 
     return meas;
+}
+
+cv::Rect KalmanTuner::GetCvRectFromState(const Eigen::Vector<double, 6> &state)
+{
+    cv::Point topLeft(state(0) - state(4) / 2.0, state(1) - state(5) / 2.0);
+    cv::Point botRight(state(0) + state(4) / 2.0, state(1) + state(5) / 2.0);
+    cv::Rect  rect(topLeft, botRight);
+    return rect;
 }

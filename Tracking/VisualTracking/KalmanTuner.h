@@ -12,7 +12,7 @@
 class KalmanTuner : public std::enable_shared_from_this<KalmanTuner>
 {
   public:
-    KalmanTuner(const Eigen::VectorXd &x0);
+    KalmanTuner();
 
     Eigen::MatrixXd Predict();
 
@@ -21,16 +21,18 @@ class KalmanTuner : public std::enable_shared_from_this<KalmanTuner>
     void Tune(const std::vector<cv::Rect> &gtBboxes);
 
     // returns c_x,c_y,v_x,v_y,w,h
-    static Eigen::VectorXd GetStateFromBbox(const cv::Rect2d &bbox);
+    static Eigen::VectorXd Get6DStateFromBbox(const cv::Rect2d &bbox);
 
     // returns center_x, center_y, width, height
-    inline Eigen::VectorXd GetMeasFromBbox(const cv::Rect2d &bbox) const;
+    static Eigen::VectorXd Get4DMeasFromBbox(const cv::Rect2d &bbox);
+
+    // Retrieves opencv style rectangle from state
+    static cv::Rect GetCvRectFromState(const Eigen::Vector<double, 6> &state);
 
     // system dimensions
     static const int32_t stateSize_{6}; // c_x,c_y,v_x,v_y,w,h (center of bbox, velocity of bbox, height, width)
     static const int32_t measSize_{4};  // c_x, c_y, w, h
     static const int32_t ctrlSize{0};   // we dont have any control parameter in this case
 
-    // Estimated states
-    Eigen::VectorXd x_hat_; // c_x,c_y,v_x,v_y,w,h (center of bbox, velocity of bbox, height, width)
+    std::vector<double> filterNoiseParams;
 };

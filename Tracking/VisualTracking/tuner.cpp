@@ -23,6 +23,7 @@
 #include "DatasetUtils.hpp"
 #include "TimeUtil.h"
 
+#include "KalmanTracker.hpp"
 #include "KalmanTuner.h"
 
 int main(int argc, char *argv[])
@@ -60,10 +61,29 @@ int main(int argc, char *argv[])
     std::cout << imagePaths.size() << " images with " << gtBboxVec.size() << " bboxes\n";
 
     // Create the tracker
-    auto        initState = KalmanTuner::GetStateFromBbox(gtBboxVec.at(0));
-    KalmanTuner kalmanTuner(initState);
-
+    KalmanTuner kalmanTuner;
     kalmanTuner.Tune(gtBboxVec);
+
+    // After tuning is done run the filter
+    auto          initState = KalmanTuner::Get6DStateFromBbox(gtBboxVec.at(0));
+    KalmanTracker kalmanTracker(initState, kalmanTuner.filterNoiseParams);
+
+    for (size_t i = 1; i < 501; i++)
+    {
+        const Eigen::Vector<double, 4> gtBboxMes(KalmanTuner::Get4DMeasFromBbox(gtBboxVec.at(i)));
+        auto                           predState = kalmanTracker.Predict();
+        if (i % 10 == 0)
+        {
+            kalmanTracker.Correct(gtBboxMes);
+        }
+
+        // Show the tracking images
+        auto frame    = cv::imread(imagePaths.at(i));
+        auto bboxPred = KalmanTuner::GetCvRectFromState(predState);
+        cv::rectangle(frame, bboxPred, cv::Scalar(0, 0, 255), 2);
+        cv::imshow("frame", frame);
+        cv::waitKey(0);
+    }
 
     return 0;
 }
