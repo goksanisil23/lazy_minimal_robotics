@@ -20,20 +20,29 @@ In monocular visual odometry, in order to estimate the 3D pose of the camera, al
 
 - Epipolar constraint: Dot product of the vector normal to epipolar plane and the vector of world point P in one of the camera coordinate frames, equals to 0.
 
+### Essential Matrix: 3D pt -> 3D pt
+
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/epipolar_constraint.png" width=50% height=50%>
 
-Epipolar constraint **`x_l ⋅ cross(t, x_l) = 0`**, together with the inter-camera relation **`x_l = R*x_r + t`** forms the equation for the essential matrix. Fundamental property of essential matrix is that it can be decomposed into the translation and rotation components.
+Epipolar constraint **`x_l ⋅ cross(t, x_l) = 0`**, together with the inter-camera relation **`x_l = R*x_r + t`** forms the equation for the **essential matrix**. A fundamental property of essential matrix is that it can be decomposed into the translation and rotation components.
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/essential_matrix_open_form.png" width=30% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/essential_matrix_eq.png" width=30% height=50%>
 
 However, xl and xr above are the 3D coordinates of the same scene point in 2 camera frames, which we do not have, hence we cannot directly use essential matrix to recover pose. 
 
-Instead, we have the corresponding image coordinates. Incorporating perspective pinhole projection equations (3d->2d) into the essential matrix equation gives: 
+### Fundamental Matrix: 2D pt -> 2D pt
+
+Instead, we have the corresponding image coordinates. Incorporating perspective pinhole projection equations (3d->2d) into the essential matrix equation gives the **fundamental matrix**: 
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/fundamental_matrix_1.png" width=40% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/fundamental_matrix_2.png" width=40% height=50%>
 
-where K_l and K_r are the intrinsics of the cameras. The fundamental matrix maps a point in one image to a line (epiline) in the other image. Note that fundamental matrix F and kF describe the same epipolar geometry. So, F is only defined up-to-scale. With this loss of dof, we need at least 8 pixel correspondences between cameras to solve for F.
+where `K_l` and `K_r` are the intrinsics of the cameras. The fundamental matrix maps a point in one image to a line (epiline) in the other image. 
 
+Note that fundamental matrix `F` and `kF` describe the same epipolar geometry. So, `F` is only defined up-to-scale. For convenience, usually the norm of F is normalized: `|F|=1`. With this loss of dof, we need at least 8 pixel correspondences between cameras to solve for `F`.
+
+Once `F` is found, using known `K_l` and `K_r`, `E` can be recovered, which can further be decomposed into `t & R` for odometry.
+
+### Example
 In this implementation, we used the ground truth from CARLA to get the true scale of the relative translation t between successive camera frames.
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/viso_essential_matrix.gif" width=100% height=50%>
