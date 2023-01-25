@@ -17,7 +17,6 @@ endif(OpenCV_FOUND)
 
 # Ceres
 find_package(Ceres REQUIRED)
-include_directories(${CERES_INCLUDE_DIRS})
 
 # Matplot++
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../External/matplotplusplus ${CMAKE_CURRENT_BINARY_DIR}/matplotplusplus)
