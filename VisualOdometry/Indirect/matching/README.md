@@ -20,9 +20,9 @@ In monocular visual odometry, in order to estimate the 3D pose of the camera, al
 
 - Epipolar constraint: Dot product of the vector normal to epipolar plane and the vector of world point P in one of the camera coordinate frames, equals to 0.
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/epipolar_constraint.png" width=30% height=50%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/epipolar_constraint.png" width=50% height=50%>
 
-Epipolar constraint, together with the inter-camera relation **`x_l = R*x_r + t`** forms the equation for the essential matrix. Fundamental property of essential matrix is that it can be decomposed into the translation and rotation components.
+Epipolar constraint **`x_l ⋅ cross(t, x_l) = 0`**, together with the inter-camera relation **`x_l = R*x_r + t`** forms the equation for the essential matrix. Fundamental property of essential matrix is that it can be decomposed into the translation and rotation components.
 
 <img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/essential_matrix_open_form.png" width=30% height=50%><img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/VisualOdometry/Indirect/matching/resources/essential_matrix_eq.png" width=30% height=50%>
 
