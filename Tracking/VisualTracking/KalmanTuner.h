@@ -14,10 +14,6 @@ class KalmanTuner : public std::enable_shared_from_this<KalmanTuner>
   public:
     KalmanTuner();
 
-    Eigen::MatrixXd Predict();
-
-    Eigen::MatrixXd Correct(const Eigen::VectorXd &meas);
-
     void Tune(const std::vector<cv::Rect> &gtBboxes);
 
     // returns c_x,c_y,v_x,v_y,w,h
