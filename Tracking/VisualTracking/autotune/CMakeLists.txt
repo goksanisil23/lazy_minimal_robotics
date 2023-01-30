@@ -1,18 +1,8 @@
 cmake_minimum_required(VERSION 3.11)
-project(tracking)
+project(autotune_visual_tracking_kf)
 
-# set(CMAKE_CXX_COMPILER "clang++")
-# set(CMAKE_CXX_COMPILER "g++")
-# set(CMAKE_CXX_STANDARD 17)
-# set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-#   set(CMAKE_BUILD_TYPE Release)
-# endif()
 set(CMAKE_CXX_FLAGS "-std=c++17 -g -Wall")
-# set(CMAKE_CXX_FLAGS "-std=c++17 -g -O3 -march=native -Wall")
-# set(CMAKE_CXX_FLAGS_RELEASE "-std=c++17 -O3 -march=native -mtune=native -funroll-loops -DNDEBUG -DBOOST_DISABLE_ASSERTS" CACHE STRING COMPILE_FLAGS FORCE)
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=memory")
+
 
 # Eigen
 find_package(Eigen3 REQUIRED)
@@ -35,7 +25,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 # LMR Tools
-SET(LMR_TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../Tools)
+SET(LMR_TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../Tools)
 
 # Include dirs valid for all targets
 include_directories(${CERES_INCLUDE_DIRS})
@@ -69,16 +59,7 @@ FUNCTION(OCV_BUILD executable_name sources)
     target_compile_options(${executable_name} PUBLIC ${OpenMP_CXX_FLAGS})
 ENDFUNCTION()
 
-# Target specifics
-
-SET(TARGET_NAME tracker)
-SET(${TARGET_NAME}_sources 
-    main_tracker.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}/Staple/fhog.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}/Staple/staple_tracker.cpp
-    ${LMR_TOOLS_DIR}/common/TimeUtil.cpp
-    )
-OCV_BUILD(${TARGET_NAME} "${${TARGET_NAME}_sources}")
+################ Target specifics
 
 SET(TARGET_NAME tuner)
 SET(${TARGET_NAME}_sources 
@@ -90,12 +71,3 @@ SET(${TARGET_NAME}_sources
     )
 OCV_BUILD(${TARGET_NAME} "${${TARGET_NAME}_sources}")
 
-SET(TARGET_NAME projectile)
-SET(${TARGET_NAME}_sources 
-    projectile.cpp
-    KalmanTuner.cpp
-    KalmanErrorTerm.cpp
-    ${LMR_TOOLS_DIR}/common/TimeUtil.cpp
-    
-    )
-OCV_BUILD(${TARGET_NAME} "${${TARGET_NAME}_sources}")
