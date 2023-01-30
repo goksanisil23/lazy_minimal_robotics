@@ -11,6 +11,7 @@ Minimal implementations for personally interesting ideas &amp; algorithms that c
 - [x] [g2o Binary Edge: 1D robot localization](/NonLinearOpt/GraphOpt#binary-edge-example)
 - [x] [Kalman Filter](/KalmanFilter)
 - [x] [Extended Kalman Filter](/ExtendedKalmanFilter)
+- [x] [Auto-tuning EKF with Ground Truth](/ExtendedKalmanFilter/autotune)
 - [x] [Unscented Kalman Filter](/UnscentedKalmanFilter)
 - [x] [Particle filter](/ParticleFilter)
 - [x] [ICP](/ICP)
