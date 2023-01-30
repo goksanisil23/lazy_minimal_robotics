@@ -1,6 +1,8 @@
 /**
  * @brief This is a simple example usage of the Extended Kalman Filter
  * It is used to estimate the 2D position(x,y) and heading(h) of a mobile robot, by using linear velocity(v) and angular rate(w) measurements.
+ * It is using Ceres least-squares optimization to tune the noise covariance matrices, given the ground truth measurements.
+ * 
  *
  * X (state vector) = [x y h v]' 
  * Z (measurement vector) = [x y]
@@ -28,7 +30,6 @@
  * dx_meas/dx, dx_meas/dy, dx_meas/dh, dx_meas/dv = [1, 0, 0, 0]
  * dy_meas/dx, dy_meas/dy, dy_meas/dh, dy_meas/dv = [0, 1, 0, 0]
  * 
- * 
  */
 
 #include <fstream>
@@ -38,8 +39,8 @@
 #include <thread>
 #include <vector>
 
+#include "EKF.hpp"
 #include "KalmanTuner.h"
-#include "ekf.hpp"
 
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
@@ -168,7 +169,7 @@ int main()
     }
 
     KalmanTuner kalmanTuner;
-    kalmanTuner.Tune(noisyCtrlVec, noisyMeasVec, trueMeasVec);
+    kalmanTuner.Tune(noisyCtrlVec, noisyMeasVec, trueMeasVec, trueStatesVec);
 
     ////////////////////////// Now try the tuned parameters
 
@@ -183,12 +184,12 @@ int main()
     Q(1, 1) = kalmanTuner.filterNoiseParams.at(3);
     Q(2, 2) = kalmanTuner.filterNoiseParams.at(4);
     Q(3, 3) = kalmanTuner.filterNoiseParams.at(5);
-    // R(0, 0) = 1.0;
-    // R(1, 1) = 1.0;
-    // Q(0, 0) = 0.1;
-    // Q(1, 1) = 0.1;
-    // Q(2, 2) = 1.0 / 180.0 * M_PI;
-    // Q(3, 3) = 1.0;
+    // R(0, 0) = INIT_OPT_PARAMS_VAL;
+    // R(1, 1) = INIT_OPT_PARAMS_VAL;
+    // Q(0, 0) = INIT_OPT_PARAMS_VAL;
+    // Q(1, 1) = INIT_OPT_PARAMS_VAL;
+    // Q(2, 2) = INIT_OPT_PARAMS_VAL;
+    // Q(3, 3) = INIT_OPT_PARAMS_VAL;
 
     EKF ekf_filter(P0, Q, R, DT);
 

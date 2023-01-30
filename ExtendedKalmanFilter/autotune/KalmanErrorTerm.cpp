@@ -5,8 +5,10 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 KalmanErrorTerm::KalmanErrorTerm(const std::vector<Eigen::Vector2d>     &noisyCtrlVec,
                                  const std::vector<Eigen::Vector2d>     &noisyMeasVec,
                                  const std::vector<Eigen::Vector2d>     &trueMeasVec,
+                                 const std::vector<Eigen::Vector4d>     &trueStatesVec,
                                  const Eigen::Vector<double, STATESIZE> &initState)
-    : noisyCtrlVec_(noisyCtrlVec), noisyMeasVec_(noisyMeasVec), trueMeasVec_(trueMeasVec), initState_(initState)
+    : noisyCtrlVec_(noisyCtrlVec), noisyMeasVec_(noisyMeasVec), trueMeasVec_(trueMeasVec),
+      trueStatesVec_(trueStatesVec), initState_(initState)
 {
 }
 
@@ -118,17 +120,26 @@ bool KalmanErrorTerm::operator()(const T *const filterNoiseParamsPtr, T *residua
 
     for (size_t i = 1; i < 501; i++)
     {
-        Eigen::Vector<double, CTRLSIZE> noisyCtrlInput = noisyCtrlVec_.at(i - 1);
-        Eigen::Vector<double, MEASSIZE> noisyMeas      = noisyMeasVec_.at(i - 1);
-        Eigen::Vector<double, MEASSIZE> trueMeas       = trueMeasVec_.at(i - 1);
+        Eigen::Vector<double, CTRLSIZE>  noisyCtrlInput = noisyCtrlVec_.at(i - 1);
+        Eigen::Vector<double, MEASSIZE>  noisyMeas      = noisyMeasVec_.at(i - 1);
+        Eigen::Vector<double, MEASSIZE>  trueMeas       = trueMeasVec_.at(i - 1);
+        Eigen::Vector<double, STATESIZE> trueState      = trueStatesVec_.at(i - 1);
 
         // Execute EKF with the noisy measurements
         x_hat_ = Predict(x_hat_, P, noisyCtrlInput, Q);
 
         x_hat_ = Correct(x_hat_, P, noisyMeas, R);
 
-        residualsPtr[i - 1] = (x_hat_(0) - trueMeas(0)) * (x_hat_(0) - trueMeas(0)) +
-                              (x_hat_(1) - trueMeas(1)) * (x_hat_(1) - trueMeas(1));
+        // Residual based on X & Y only (measurements)
+        // residualsPtr[i - 1] = (x_hat_(0) - trueMeas(0)) * (x_hat_(0) - trueMeas(0)) +
+        //                       (x_hat_(1) - trueMeas(1)) * (x_hat_(1) - trueMeas(1));
+        std::ignore = trueMeas;
+        // Residual based on X & Y & h & v (all states)
+        std::ignore                   = trueState;
+        residualsPtr[(i - 1) * 4]     = ceres::abs(x_hat_(0) - trueState(0));
+        residualsPtr[(i - 1) * 4 + 1] = ceres::abs(x_hat_(1) - trueState(1));
+        residualsPtr[(i - 1) * 4 + 2] = ceres::abs(x_hat_(2) - trueState(2));
+        residualsPtr[(i - 1) * 4 + 3] = ceres::abs(x_hat_(3) - trueState(3));
     }
 
     return true;
@@ -137,9 +148,11 @@ bool KalmanErrorTerm::operator()(const T *const filterNoiseParamsPtr, T *residua
 ceres::CostFunction *KalmanErrorTerm::Create(const std::vector<Eigen::Vector2d>     &noisyCtrlVec,
                                              const std::vector<Eigen::Vector2d>     &noisyMeasVec,
                                              const std::vector<Eigen::Vector2d>     &trueMeasVec,
+                                             const std::vector<Eigen::Vector4d>     &trueStatesVec,
                                              const Eigen::Vector<double, STATESIZE> &initState)
 {
     // dimension of residual, dimension of opt_var_1
-    return (new ::ceres::AutoDiffCostFunction<KalmanErrorTerm, 500, OPT_PARAMS_SIZE>(
-        new KalmanErrorTerm(noisyCtrlVec, noisyMeasVec, trueMeasVec, initState)));
+    // return (new ::ceres::AutoDiffCostFunction<KalmanErrorTerm, 500, OPT_PARAMS_SIZE>(
+    return (new ::ceres::AutoDiffCostFunction<KalmanErrorTerm, 2000, OPT_PARAMS_SIZE>(
+        new KalmanErrorTerm(noisyCtrlVec, noisyMeasVec, trueMeasVec, trueStatesVec, initState)));
 }

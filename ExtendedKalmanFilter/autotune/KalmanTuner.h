@@ -23,7 +23,8 @@ class KalmanTuner : public std::enable_shared_from_this<KalmanTuner>
 
     void Tune(const std::vector<Eigen::Vector2d> &noisyCtrlVec,
               const std::vector<Eigen::Vector2d> &noisyMeasVec,
-              const std::vector<Eigen::Vector2d> &trueMeasVec);
+              const std::vector<Eigen::Vector2d> &trueMeasVec,
+              const std::vector<Eigen::Vector4d> &trueStatesVec);
 
     // system dimensions
     static const int32_t stateSize_{STATESIZE}; // x,y,h,v

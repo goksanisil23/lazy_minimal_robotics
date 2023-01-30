@@ -39,7 +39,7 @@
 #include <thread>
 #include <vector>
 
-#include "ekf.hpp"
+#include "EKF.hpp"
 
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;

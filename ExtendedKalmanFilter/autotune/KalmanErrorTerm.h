@@ -1,3 +1,9 @@
+/**
+ * @brief This is a single residual block implementation for tuning the process noise and measurement noise
+ * parameters if the EKF. Its implemented as a single block since the current state of the filter is determined
+ * by the previous state which are dependent on the templated covariance paramters which we're optimizing.
+**/
+
 #pragma once
 
 #include <ceres/autodiff_cost_function.h>
@@ -15,6 +21,7 @@ struct KalmanErrorTerm
     KalmanErrorTerm(const std::vector<Eigen::Vector2d>     &noisyCtrlVec,
                     const std::vector<Eigen::Vector2d>     &noisyMeasVec,
                     const std::vector<Eigen::Vector2d>     &trueMeasVec,
+                    const std::vector<Eigen::Vector4d>     &trueStatesVec,
                     const Eigen::Vector<double, STATESIZE> &initState);
 
     template <typename T>
@@ -23,6 +30,7 @@ struct KalmanErrorTerm
     static ceres::CostFunction *Create(const std::vector<Eigen::Vector2d>     &noisyCtrlVec,
                                        const std::vector<Eigen::Vector2d>     &noisyMeasVec,
                                        const std::vector<Eigen::Vector2d>     &trueMeasVec,
+                                       const std::vector<Eigen::Vector4d>     &trueStatesVec,
                                        const Eigen::Vector<double, STATESIZE> &initState);
 
     template <typename T>
@@ -52,9 +60,10 @@ struct KalmanErrorTerm
 
   private:
     // member variables
-    std::vector<Eigen::Vector<double, CTRLSIZE>> noisyCtrlVec_;
-    std::vector<Eigen::Vector<double, MEASSIZE>> noisyMeasVec_;
-    std::vector<Eigen::Vector<double, MEASSIZE>> trueMeasVec_;
+    std::vector<Eigen::Vector<double, CTRLSIZE>>  noisyCtrlVec_;
+    std::vector<Eigen::Vector<double, MEASSIZE>>  noisyMeasVec_;
+    std::vector<Eigen::Vector<double, MEASSIZE>>  trueMeasVec_;
+    std::vector<Eigen::Vector<double, STATESIZE>> trueStatesVec_;
 
     Eigen::Vector<double, STATESIZE> initState_;
 };
