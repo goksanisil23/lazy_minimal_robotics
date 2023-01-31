@@ -3,3 +3,6 @@ Many times in practice, performance of the Kalman filters are determined by the 
 
 Here, we have used the Ceres library to form the least-squares problem, where the tuning parameters are Q and R matrix diagonal entries.
 Optimization is implemented as a single residual block with `N*num_state` dimensions (where `N` is the number of time samples in the dataset) since the current state of the filter is determined by the previous state which are dependent on the templated covariance parameters  we're optimizing.
+
+### Other tuning references:
+http://alexthompson.ai/tuning-EKF-process-noise/
