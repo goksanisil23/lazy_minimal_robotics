@@ -71,30 +71,25 @@ ENDFUNCTION()
 
 # Target specifics
 
-SET(TARGET_NAME tracker)
+SET(TARGET_NAME generic_tracker)
 SET(${TARGET_NAME}_sources 
-    main_tracker.cpp 
+    generic_tracker.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/Staple/fhog.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/Staple/staple_tracker.cpp
     ${LMR_TOOLS_DIR}/common/TimeUtil.cpp
     )
 OCV_BUILD(${TARGET_NAME} "${${TARGET_NAME}_sources}")
 
-SET(TARGET_NAME tuner)
+SET(TARGET_NAME kalman_tracker)
 SET(${TARGET_NAME}_sources 
-    tuner.cpp
-    KalmanTuner.cpp
-    KalmanErrorTerm.cpp
+    kalman_tracker.cpp  
     ${LMR_TOOLS_DIR}/common/TimeUtil.cpp
-    
     )
 OCV_BUILD(${TARGET_NAME} "${${TARGET_NAME}_sources}")
 
 SET(TARGET_NAME projectile)
 SET(${TARGET_NAME}_sources 
     projectile.cpp
-    KalmanTuner.cpp
-    KalmanErrorTerm.cpp
     ${LMR_TOOLS_DIR}/common/TimeUtil.cpp
     
     )

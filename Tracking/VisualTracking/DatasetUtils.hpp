@@ -1,6 +1,9 @@
 #include <fstream>
 #include <iostream>
 
+#include "Eigen/Core"
+#include "Eigen/Dense"
+
 #include <opencv2/opencv.hpp>
 
 cv::Rect getAxisAlignedBB(std::vector<cv::Point2f> polygon)
@@ -64,4 +67,36 @@ std::vector<cv::Rect> GetGtBboxFromFileLASOT(const std::string &gtFilePath)
         gtBboxVec.emplace_back(cv::Rect{bboxVal[0], bboxVal[1], bboxVal[2], bboxVal[3]});
     }
     return gtBboxVec;
+}
+
+// returns c_x,c_y,v_x,v_y,w,h
+Eigen::VectorXd Get6DStateFromBbox(const cv::Rect2d &bbox)
+{
+    Eigen::VectorXd state{Eigen::VectorXd::Zero(6)};
+    state(0) = bbox.tl().x + bbox.width / 2.0;
+    state(1) = bbox.tl().y + bbox.height / 2.0;
+    state(4) = bbox.width;
+    state(5) = bbox.height;
+
+    return state;
+}
+
+// returns center_x, center_y, width, height
+Eigen::VectorXd Get4DMeasFromBbox(const cv::Rect2d &bbox)
+{
+    Eigen::VectorXd meas{Eigen::VectorXd::Zero(4)};
+    meas(0) = bbox.tl().x + bbox.width / 2.0;
+    meas(1) = bbox.tl().y + bbox.height / 2.0;
+    meas(2) = bbox.width;
+    meas(3) = bbox.height;
+
+    return meas;
+}
+
+cv::Rect GetCvRectFromState(const Eigen::Vector<double, 6> &state)
+{
+    cv::Point topLeft(state(0) - state(4) / 2.0, state(1) - state(5) / 2.0);
+    cv::Point botRight(state(0) + state(4) / 2.0, state(1) + state(5) / 2.0);
+    cv::Rect  rect(topLeft, botRight);
+    return rect;
 }
