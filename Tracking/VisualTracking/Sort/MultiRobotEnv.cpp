@@ -4,9 +4,20 @@ MultiRobotEnv::Robot::Robot(const raylib::Vector2 &pos0, const float &radius) : 
 {
 }
 
+void MultiRobotEnv::UpdateRobotBbox(Robot &robot)
+{
+    robot.bbox = raylib::BoundingBox(raylib::Vector3(robot.position.x - robot.radius * ROBOT_BBOX_SIZE_RATIO,
+                                                     robot.position.y - robot.radius * ROBOT_BBOX_SIZE_RATIO,
+                                                     0),
+                                     raylib::Vector3(robot.position.x + robot.radius * ROBOT_BBOX_SIZE_RATIO,
+                                                     robot.position.y + robot.radius * ROBOT_BBOX_SIZE_RATIO,
+                                                     0));
+}
+
 void MultiRobotEnv::Robot::Draw() const
 {
     DrawCircle(position.x, position.y, radius, BLUE);
+    DrawBoundingBox(bbox, GREEN);
 }
 
 MultiRobotEnv::MultiRobotEnv() : simWindow_(screenWidth, screenHeight, "Hungarian Assignment")
@@ -37,7 +48,12 @@ void MultiRobotEnv::MoveRobots()
 
     std::for_each(robots_.begin(),
                   robots_.end(),
-                  [&dt](MultiRobotEnv::Robot &robot) { robot.position += raylib::Vector2(VX, VY) * dt; });
+                  [&dt, this](MultiRobotEnv::Robot &robot)
+                  {
+                      robot.position += raylib::Vector2(VX, VY) * dt;
+                      // Update the bounding boxes
+                      UpdateRobotBbox(robot);
+                  });
 
     prevTime = currTime;
 }

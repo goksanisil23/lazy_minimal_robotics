@@ -13,7 +13,7 @@ class MultiRobotEnv
   public:
     // --------- Constants --------- //
     static constexpr double ROBOT_RADIUS          = 4;
-    static constexpr double ROBOT_BBOX_SIZE_RATIO = 1.5; // bbox_radius/robot_radius
+    static constexpr double ROBOT_BBOX_SIZE_RATIO = 2.5; // bbox_radius/robot_radius
 
     static constexpr double VX = 15;
     static constexpr double VY = 15;
@@ -30,9 +30,9 @@ class MultiRobotEnv
 
         void Draw() const;
 
-        raylib::Vector2   position;
-        raylib::Rectangle bbox;
-        float             radius;
+        raylib::Vector2     position;
+        raylib::BoundingBox bbox;
+        float               radius;
     };
 
     // ---------- Member Variables -------------- //
@@ -45,6 +45,7 @@ class MultiRobotEnv
     void GenerateRobots(const size_t &areaWidth, const size_t &areaHeight, const size_t &numRobots);
     void DrawRobots();
     void MoveRobots();
+    void UpdateRobotBbox(Robot &robot);
 
     template <typename... Tfunc>
     bool StepEnv(Tfunc... userFuncs)
