@@ -5,33 +5,37 @@ Online "learning" trackers can re-adjust the weights of the tracking filter onli
 
 Offline learning trackers on the other hand do not update the weights during runtime, all the learning happens offline. (e.g. Siamense networks)
 
-MOSSE-> better at tracking fast objects than optical flow
+## 
+- MOSSE-> better at tracking fast objects than optical flow
 
-CSRT -> if the distance between occlusion and reappearance is big, can't recover
+- CSRT -> if the distance between occlusion and reappearance is big, can't recover
 (recovers in in motorbike tracking behind trees but not in frisbee dataset)
 
-Dense Optical flow -> rescaling converges to smaller bboxes since variance is smaller there.
+- Dense Optical flow -> rescaling converges to smaller bboxes since variance is smaller there.
 manages to track small motions but cant recover from occlusions or fast movements.
 
+- Kalman Filter -> when there is considerable camera movement or abrupt object movement, deviates considerably from the object since our motion
+model is simple constant velocity. 
+Should only use for very short term, and later for MOT.
+Still, for "easier" motions, good to see that unmeasured states vx and vy can converge to true values through measurements.
+---> Show the for simple projectile case, kalman filter tracks well
+
+> **Note**
+> As the speed of DNN based object detection algorithms is increasing, long term SOT tracking is becoming less relevant since its cheaper to get detections more often. However, the techniques are still relevant for MOT case, where we need to be able to relate the objects at k to k+1. If we can track individual objects to some extend, it makes the id association in MOT case much simpler when the multi instance detection happens. 
+
+
 ### How to run
+
+```bash
 ./tracker  --dataset_folder /home/goksan/Downloads/tracking_datasets/vot2015/road --tracker csrt
 ./tracker  --dataset_folder /home/goksan/Downloads/slow_traffic --tracker oflow
+```
 
-
-## Stationary camera
-
-## Moving camera
-
-## Occlusion
-
-
+## TODO
 
 - SORT
 - DeepSORT
-https://github.com/opendr-eu/opendr/tree/master/src/opendr/perception/object_tracking_2d/deep_sort/algorithm/deep_sort/sort
 - Byte
-
-- tracking features with optical flow & mosse
 
 - Staple
 2 separate (complementary features): structure(HOG) and color distribution.
@@ -46,17 +50,6 @@ From this likelihood map, in order to make it look like the "response" function 
 - st-dbscan
 
 - siamese --> in c++
-
-
-
-<!-- DEFINE USE CASES TO TRACK FIRST: -->
-
-1) vehicle tracking in stationary camera
-2) ball tracking in broadcast
-3) stationary webcam drink tracking
-4) moving camera with zooming
-5) object changin shape
-5) occlusion
 
 ### References
 https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#visual-tracking
