@@ -97,10 +97,11 @@ class SecureMat
     }
 
     // Assigns the cost matrix directly from the input, resizes before the assignment
-    void AssignFromMtx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &&inMtx)
+    template <typename U>
+    void AssignFromMtx(U &&inMtx)
     {
         Resize(inMtx.rows(), inMtx.cols());
-        mat_ = std::move(inMtx);
+        mat_.topLeftCorner(inMtx.rows(), inMtx.cols()) = std::forward<U>(inMtx);
     }
 
     inline const T &operator()(const size_t row, const size_t col) const
