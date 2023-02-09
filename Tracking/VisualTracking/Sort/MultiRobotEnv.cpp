@@ -8,12 +8,12 @@ MultiRobotEnv::Robot::Robot(const raylib::Vector2 &pos0,
                             const size_t          &id)
     : position{pos0}, heading{heading0}, velocity{v0}, radius{radius}, id{id}
 {
+    color = MultiRobotEnv::GenerateRandomColor();
 }
 void MultiRobotEnv::Robot::Draw() const
 {
-    DrawCircle(position.x, position.y, radius, BLUE);
-    DrawBoundingBox(bbox, GREEN);
-    DrawText(std::to_string(id).c_str(), bbox.min.x - 5, bbox.min.y - 5, 15, GREEN);
+    DrawCircle(position.x, position.y, radius, color);
+    // DrawText(std::to_string(id).c_str(), position.x - 25, position.y, 15, color);
 }
 
 // ----- MultiRobotEnv Class ----- //
@@ -83,7 +83,7 @@ void MultiRobotEnv::MoveRobots(const double &dt)
                       {
                           robot.position.y = tmpPosY;
                       }
-                      // Update the bounding boxes
+                      // Update the bounding box
                       UpdateRobotBbox(robot);
                   });
 }
@@ -111,4 +111,13 @@ std::vector<Eigen::VectorXd> MultiRobotEnv::GetAllRobotBboxs()
         allBboxes.emplace_back(Eigen::Vector4d(cx, cy, width, height));
     }
     return allBboxes;
+}
+
+Color MultiRobotEnv::GenerateRandomColor()
+{
+    unsigned char r = static_cast<double>(rand()) / static_cast<double>(RAND_MAX / (255));
+    unsigned char g = static_cast<double>(rand()) / static_cast<double>(RAND_MAX / (255));
+    unsigned char b = static_cast<double>(rand()) / static_cast<double>(RAND_MAX / (255));
+
+    return (Color){r, g, b, 255};
 }

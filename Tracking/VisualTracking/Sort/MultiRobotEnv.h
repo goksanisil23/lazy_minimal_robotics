@@ -16,7 +16,7 @@ class MultiRobotEnv
     static constexpr double ROBOT_RADIUS          = 7;
     static constexpr double ROBOT_BBOX_SIZE_RATIO = 2.5; // bbox_radius/robot_radius
 
-    static constexpr double V_MAX       = 10.0;
+    static constexpr double V_MAX       = 5.0;
     static constexpr double SIM_STEP_DT = 0.01; // 100Hz
 
     static constexpr int SCREENWIDTH  = 1200;
@@ -34,6 +34,7 @@ class MultiRobotEnv
               const size_t          &id);
 
         void Draw() const;
+        void DrawSnailTrail() const;
 
         raylib::Vector2     position;
         double              heading;
@@ -41,6 +42,7 @@ class MultiRobotEnv
         raylib::BoundingBox bbox;
         double              radius;
         size_t              id;
+        Color               color;
     };
 
     // ---------- Member Variables -------------- //
@@ -55,6 +57,8 @@ class MultiRobotEnv
     void MoveRobots(const double &dt);
     void UpdateRobotBbox(Robot &robot);
 
+    static Color GenerateRandomColor();
+
     std::vector<Eigen::VectorXd> GetAllRobotBboxs();
 
     template <typename... Tfunc>
@@ -63,7 +67,7 @@ class MultiRobotEnv
         // -------- Draw -------- //
         BeginDrawing();
 
-        simWindow_.ClearBackground(GRAY);
+        simWindow_.ClearBackground(BLACK);
 
         (userFuncs(), ...);
 

@@ -27,12 +27,18 @@ int main(int argc, char *argv[])
     SortTracker sortTracker;
 
     bool simOk = true;
+    int  ctr   = 0;
     while (simOk)
     {
         env.MoveRobots(env.SIM_STEP_DT);
         auto bboxDetections = env.GetAllRobotBboxs();
+        if ((ctr > 10) && (ctr < 30))
+            bboxDetections = std::vector<Eigen::VectorXd>(bboxDetections.begin() + 1, bboxDetections.end());
         sortTracker.Step(bboxDetections, env.SIM_STEP_DT);
+
         simOk = env.RenderEnv(drawEnvFunc);
+        ctr++;
+        std::cout << "ctr: " << ctr << std::endl;
     }
 
     return 0;
