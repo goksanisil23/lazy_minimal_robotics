@@ -58,6 +58,7 @@ FUNCTION(OCV_BUILD executable_name sources)
 
     target_include_directories(${executable_name} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/Sort/SortTracker
         ${CMAKE_CURRENT_SOURCE_DIR}/Staple
         ${CMAKE_CURRENT_SOURCE_DIR}/../../External/Argparse
         ${OpenCV_INCLUDE_DIRS}

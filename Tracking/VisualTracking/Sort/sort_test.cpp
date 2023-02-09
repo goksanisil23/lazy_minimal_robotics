@@ -4,66 +4,35 @@
 #include <random>
 #include <unordered_map>
 
+#include "argparse.hpp"
 #include "raylib-cpp.hpp"
 
-#include "HungarianOptimizer.hpp"
 #include "MultiRobotEnv.h"
+#include "SortTracker/SortTracker.h"
 
-constexpr size_t NUM_ROBOTS = 10;
-
-// row: robot, col: hole
-// std::vector<double> GenerateCostVector(const std::vector<MultiRobotEnv::Robot> &robots,
-//                                        std::vector<MultiRobotEnv::Hole>        &holes)
-// {
-//     std::vector<double> costVec;
-//     for (const auto &robot : robots)
-//     {
-//         for (const auto &hole : holes)
-//         {
-//             costVec.push_back(MultiRobotEnv::GetRobotHoleDistance2(robot, hole));
-//         }
-//     }
-
-//     return costVec;
-// }
-
-// first: row, second: col
-void ShowAssignments(const std::vector<std::pair<size_t, size_t>> &assignments)
+int main(int argc, char *argv[])
 {
-    for (const auto &assignment : assignments)
-    {
-        std::cout << assignment.first << " -> " << assignment.second << std::endl;
-    }
-}
 
-int main(void)
-{
+    argparse::ArgumentParser program("sort_tracker");
+    program.add_argument("--num_robots").required().help("number of robots to be tracked").scan<'u', size_t>();
+    program.parse_args(argc, argv);
+    int numRobots = program.get<size_t>("--num_robots");
+
     MultiRobotEnv env;
-    env.GenerateRobots(GetScreenWidth(), GetScreenHeight(), NUM_ROBOTS);
+    env.GenerateRobots(env.areaWidth_, env.areaHeight_, numRobots);
 
-    // Create Hungarian solver for assignment problem
-    std::vector<std::pair<size_t, size_t>> robotToHoleMatches;
-    HungarianOptimizer<double>             hungarianSolver;
-    hungarianSolver.costs()->Reserve(1000, 1000);
-    // hungarianSolver.costs()->Resize(robots.size(), holes.size());
-    // std::vector<double> costVec(GenerateCostVector(robots, holes));
-    // hungarianSolver.costs()->AssignFromVec(costVec);
-    // hungarianSolver.Minimize(&robotToHoleMatches);
-    // ShowAssignments(robotToHoleMatches);
+    auto drawEnvFunc = std::bind(&MultiRobotEnv::DrawRobots, &env);
 
-    // auto drawFunc = std::bind(DrawMatches, std::ref(robotToHoleMatches), std::ref(robots));
-    auto moveFunc = std::bind(&MultiRobotEnv::MoveRobots, &env);
-    auto drawFunc = std::bind(&MultiRobotEnv::DrawRobots, &env);
-    // auto moveFunc = std::bind(MoveRobots, &robots, 1.0); // alternatively use pointer
+    // Sort Tracker
+    SortTracker sortTracker;
 
     bool simOk = true;
     while (simOk)
     {
-
-        simOk = env.StepEnv(moveFunc, drawFunc);
-        std::cout << env.robots_.at(0).position.x << " " << env.robots_.at(0).position.y << std::endl;
-        // std::cout << GetFrameTime() << std::endl;
-        // simOk = env.StepEnv(moveRobots(0.1));
+        env.MoveRobots(env.SIM_STEP_DT);
+        auto bboxDetections = env.GetAllRobotBboxs();
+        sortTracker.Step(bboxDetections, env.SIM_STEP_DT);
+        simOk = env.RenderEnv(drawEnvFunc);
     }
 
     return 0;

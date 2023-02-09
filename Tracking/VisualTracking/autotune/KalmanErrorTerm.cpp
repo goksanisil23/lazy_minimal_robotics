@@ -90,8 +90,8 @@ template <typename T>
 T KalmanErrorTerm::IoU(const Eigen::Vector<double, 4> &gtBboxMes, const Eigen::Vector<T, 6> &predState) const
 {
 
-    T intersectionX1 = std::min(T(gtBboxMes(0) - gtBboxMes(2) / 2.0), predState(0) - predState(4) / 2.0);
-    T intersectionY1 = std::min(T(gtBboxMes(1) - gtBboxMes(3) / 2.0), predState(1) - predState(5) / 2.0);
+    T intersectionX1 = std::max(T(gtBboxMes(0) - gtBboxMes(2) / 2.0), predState(0) - predState(4) / 2.0);
+    T intersectionY1 = std::max(T(gtBboxMes(1) - gtBboxMes(3) / 2.0), predState(1) - predState(5) / 2.0);
     T intersectionX2 = std::min(T(gtBboxMes(0) + gtBboxMes(2) / 2.0), predState(0) + predState(4) / 2.0);
     T intersectionY2 = std::min(T(gtBboxMes(1) + gtBboxMes(3) / 2.0), predState(1) + predState(5) / 2.0);
 

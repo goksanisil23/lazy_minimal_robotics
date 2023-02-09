@@ -24,7 +24,6 @@
 #include "TimeUtil.h"
 
 // #include "FeatureTracker.hpp"
-#include "KalmanTracker.hpp"
 #include "Mosse.hpp"
 #include "OFlowTracker.hpp"
 #include "OpencvTrackers.hpp"
