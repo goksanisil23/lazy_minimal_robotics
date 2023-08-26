@@ -8,21 +8,21 @@ Matrices that we see commonly in these methods are:
 When $f: R^n \rightarrow  R,$ 
 gradient = $∇f: R^n \rightarrow R^n$
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/resources/gradient.png" width=70% height=70%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Optimizations/resources/gradient.png" width=70% height=70%>
 
 **Hessian**: Second order mixed partials of a scalar function. Also worded as 2nd order derivative of a multivariate function.
 
 When $f: R^n \rightarrow  R,$ 
 hessian = $∇f: R^n \rightarrow R^n$
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/resources/hessian.png" width=70% height=70%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Optimizations/resources/hessian.png" width=70% height=70%>
 
 **Jacobian**: Matrix formed by partial derivatives of a *vector function*. ($df/dx$, where $f$ and $x$ are vectors)
 
 When $f: R^n \rightarrow  R^m,$ 
 jacobian = $J_{i,j}: df_i/dx_j$
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/NonLinearOpt/resources/jacobian.png" width=70% height=70%>
+<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/Optimizations/resources/jacobian.png" width=70% height=70%>
 
 
 Very commonly, we have our parameters $x: R^n$ that belongs to the mathematical model/system, and we make many ($m$) observations/measurements of this system.  
