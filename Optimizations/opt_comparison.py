@@ -139,6 +139,8 @@ class LevenbergMarquardt:
             self.converged = True
 
 
+###### Visualize all 3 together ######
+
 gd = GradientDescent()
 gn = GaussNewton()
 lm = LevenbergMarquardt()
