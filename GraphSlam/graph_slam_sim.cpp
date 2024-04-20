@@ -7,12 +7,37 @@
 #include <random>
 #include <vector>
 
-constexpr float kDt = 0.015;
+#include "Agent.h"
+#include "GraphSlam.h"
+#include "Landmark.h"
+#include "Odometry.h"
+#include "Visualizer.h"
 
-struct Landmark
+constexpr size_t kNumLandmarks{75};
+constexpr float  kMinLandmarkSpacing{10.F};
+
+struct DeadReckon
 {
-    raylib::Vector2 position_;
-    int             id_;
+    raylib::Vector2 position;
+    float           heading;
+
+    // Accumlates delta_pose from robot frame into global frame
+    void update(const raylib::Vector2 delta_pos, const float delta_rot)
+    {
+        float global_dx = delta_pos.x * cos(heading) - delta_pos.y * sin(heading);
+        float global_dy = delta_pos.x * sin(heading) + delta_pos.y * cos(heading);
+
+        // Update the global pose
+        position.x += global_dx;
+        position.y += global_dy;
+        heading += delta_rot;
+
+        // Normalize the angle to remain within -PI to PI
+        heading = fmod(heading + M_PI, 2 * M_PI);
+        if (heading < 0)
+            heading += 2 * M_PI;
+        heading -= M_PI;
+    }
 };
 
 std::vector<Landmark> generateLandmarks(size_t count, int area_width, int area_height, float min_distance)
@@ -24,7 +49,7 @@ std::vector<Landmark> generateLandmarks(size_t count, int area_width, int area_h
 
     while (landmarks.size() < count)
     {
-        Landmark new_landmark{{dist_x(gen), dist_y(gen)}};
+        Landmark new_landmark{{dist_x(gen), dist_y(gen)}, static_cast<int>(landmarks.size())};
         bool     too_close =
             std::any_of(landmarks.begin(),
                         landmarks.end(),
@@ -32,159 +57,26 @@ std::vector<Landmark> generateLandmarks(size_t count, int area_width, int area_h
 
         if (!too_close)
         {
+            std::cout << "Added landmark " << new_landmark.id_ << std::endl;
             landmarks.push_back(new_landmark);
         }
     }
     return landmarks;
 }
 
-class Agent
-{
-  public:
-    static constexpr float kRadius{10.F};
-    static constexpr float kSensorRange{100.F};
-
-    struct LandmarkDetection
-    {
-        float range;
-        float bearing;
-        int   id;
-    };
-
-    Agent(const raylib::Vector2 position_initial, const float angle_initial)
-        : position_{position_initial}, angle_{angle_initial}
-    {
-    }
-
-    raylib::Vector2 position_;
-    float           angle_ = 0.0; // Initial heading angle_ in radians
-
-    std::vector<LandmarkDetection> landmark_detections_{};
-
-    std::default_random_engine      noise_generator;
-    std::normal_distribution<float> linear_vel_noise_dist{0.0, 5.0};       // Linear velocity noise
-    std::normal_distribution<float> angular_vel_noise_dist{0.0, 0.2};      // Angular velocity noise
-    std::normal_distribution<float> landmark_range_noise_dist{0.0, 2.0};   // Sensor noise for distance
-    std::normal_distribution<float> landmark_bearing_noise_dist{0.0, 0.5}; // Sensor noise for bearing
-
-    // IMU simulated measurements
-    std::pair<float, float> readIMU(float linearVelocity, float angularVelocity)
-    {
-        return {
-            linearVelocity + linear_vel_noise_dist(noise_generator),  // Noisy linear velocity
-            angularVelocity + angular_vel_noise_dist(noise_generator) // Noisy angular velocity
-        };
-    }
-
-    // Update movement based on actual commands without noise
-    void updateMovement(float linearVelocity, float angularVelocity)
-    {
-        angle_ += angularVelocity * kDt;
-        position_.x += linearVelocity * kDt * cos(angle_);
-        position_.y += linearVelocity * kDt * sin(angle_);
-    }
-
-    // Sensing landmarks
-    void senseLandmarks(const std::vector<Landmark> &landmarks)
-    {
-        landmark_detections_.clear();
-
-        for (const auto &landmark : landmarks)
-        {
-            float distance = position_.Distance(landmark.position_);
-            float bearing  = atan2(landmark.position_.y - position_.y, landmark.position_.x - position_.x) - angle_;
-            if (distance <= kSensorRange)
-            {
-                // Simulate measurement noise for distance and bearing
-                distance += landmark_range_noise_dist(noise_generator);
-                bearing += landmark_bearing_noise_dist(noise_generator);
-                landmark_detections_.push_back({distance, bearing, landmark.id_});
-            }
-
-            for (auto const lm : landmark_detections_)
-            {
-                std::cout << "id: " << lm.id << " range: " << lm.range << " bearing: " << lm.bearing << std::endl;
-            }
-        }
-    }
-};
-
-struct Odometry
-{
-    raylib::Vector2 estimated_position_;
-    float           estimated_angle_;
-
-    void update(const float &linear_vel_meas, const float &angular_vel_meas)
-    {
-        estimated_angle_ += kDt * angular_vel_meas;
-        estimated_position_.x += linear_vel_meas * kDt * cos(estimated_angle_);
-        estimated_position_.y += linear_vel_meas * kDt * sin(estimated_angle_);
-    }
-};
-
-class Visualizer
-{
-  public:
-    static constexpr int kScreenWidth{800};
-    static constexpr int kScreenHeight{450};
-
-    Visualizer()
-    {
-        window_ = std::make_unique<raylib::Window>(kScreenWidth, kScreenHeight, "2D Robot Localization Simulator");
-
-        SetTargetFPS(60);
-    };
-
-    bool shouldClose()
-    {
-        return window_->ShouldClose();
-    }
-
-    void draw(const Agent &agent, const std::vector<Landmark> &landmarks, const Odometry &odometry)
-    {
-        BeginDrawing();
-        ClearBackground(BLACK);
-        // Draw the agent
-        {
-            DrawCircle(agent.position_.x, agent.position_.y, Agent::kRadius, BLUE); //Draw the robot
-            DrawCircle(odometry.estimated_position_.x,
-                       odometry.estimated_position_.y,
-                       Agent::kRadius,
-                       Fade(SKYBLUE, 0.3)); //  draw the odometry estimated
-            DrawCircleLines(
-                agent.position_.x, agent.position_.y, Agent::kSensorRange, GREEN); // Outline of sensing range
-            DrawCircleV(raylib::Vector2(agent.position_.x, agent.position_.y),
-                        Agent::kSensorRange,
-                        Fade(LIGHTGRAY, 0.3)); // Sensing range visualization
-            DrawLine(agent.position_.x,
-                     agent.position_.y,
-                     agent.position_.x + Agent::kSensorRange * cos(agent.angle_),
-                     agent.position_.y + Agent::kSensorRange * sin(agent.angle_),
-                     GREEN);
-        }
-        // Draw the landmarks
-        {
-            for (auto const &landmark : landmarks)
-            {
-                DrawCircle(landmark.position_.x, landmark.position_.y, 5, RED);
-            }
-        }
-
-        EndDrawing();
-    }
-
-    std::unique_ptr<raylib::Window> window_;
-};
-
 int main()
 {
-
-    Agent                 agent{{400, 225}, 0.0};
-    Odometry              odometry{agent.position_, agent.angle_};
+    // Agent agent{{0, 0}, M_PI / 4};
+    Agent                 agent{{Visualizer::kScreenWidth / 2, Visualizer::kScreenHeight / 2}, M_PI / 4};
+    DeadReckon            dead_reckon{{agent.position_.x, agent.position_.y}, agent.heading_};
+    Odometry              odometry;
+    raylib::Vector2       opt_pose{agent.position_.x, agent.position_.y};
     std::vector<Landmark> landmarks =
-        generateLandmarks(10, Visualizer::kScreenWidth, Visualizer::kScreenHeight, Visualizer::kScreenHeight / 100);
+        generateLandmarks(kNumLandmarks, Visualizer::kScreenWidth, Visualizer::kScreenHeight, kMinLandmarkSpacing);
 
     Visualizer visualizer;
+
+    GraphSlam graph_slam(agent.position_.x, agent.position_.y, agent.heading_);
 
     while (!visualizer.shouldClose())
     {
@@ -202,16 +94,18 @@ int main()
         auto [linear_vel_meas, angular_vel_meas] = agent.readIMU(linear_vel, angular_vel);
         agent.updateMovement(linear_vel, angular_vel);
         odometry.update(linear_vel_meas, angular_vel_meas);
-
-        std::cout << "Robot: " << agent.position_.x << " " << agent.position_.y << std::endl;
-        std::cout << "Odom : " << odometry.estimated_position_.x << " " << odometry.estimated_position_.y << std::endl;
-
-        visualizer.draw(agent, landmarks, odometry);
+        dead_reckon.update(odometry.delta_position_, odometry.delta_heading_);
 
         agent.senseLandmarks(landmarks);
+
+        graph_slam.processMeasurements(odometry.delta_position_, odometry.delta_heading_, agent.landmark_measurements_);
+
+        opt_pose = graph_slam.getLastOptPose();
+
+        std::cout << "GT: " << agent.position_.x << " " << agent.position_.y << std::endl;
+        std::cout << "SL: " << opt_pose.x << " " << opt_pose.y << std::endl;
+
+        visualizer.draw(agent, landmarks, dead_reckon.position, opt_pose, graph_slam.landmarks_);
     }
-
-    std::cout << "done" << std::endl;
-
     return 0;
 }
