@@ -8,37 +8,14 @@
 #include <vector>
 
 #include "Agent.h"
+#include "DeadReckon.h"
 #include "GraphSlam.h"
 #include "Landmark.h"
 #include "Odometry.h"
 #include "Visualizer.h"
 
-constexpr size_t kNumLandmarks{75};
+constexpr size_t kNumLandmarks{150};
 constexpr float  kMinLandmarkSpacing{10.F};
-
-struct DeadReckon
-{
-    raylib::Vector2 position;
-    float           heading;
-
-    // Accumlates delta_pose from robot frame into global frame
-    void update(const raylib::Vector2 delta_pos, const float delta_rot)
-    {
-        float global_dx = delta_pos.x * cos(heading) - delta_pos.y * sin(heading);
-        float global_dy = delta_pos.x * sin(heading) + delta_pos.y * cos(heading);
-
-        // Update the global pose
-        position.x += global_dx;
-        position.y += global_dy;
-        heading += delta_rot;
-
-        // Normalize the angle to remain within -PI to PI
-        heading = fmod(heading + M_PI, 2 * M_PI);
-        if (heading < 0)
-            heading += 2 * M_PI;
-        heading -= M_PI;
-    }
-};
 
 std::vector<Landmark> generateLandmarks(size_t count, int area_width, int area_height, float min_distance)
 {
@@ -64,13 +41,24 @@ std::vector<Landmark> generateLandmarks(size_t count, int area_width, int area_h
     return landmarks;
 }
 
+void manualControl(float &linear_vel, float &angular_vel)
+{
+    if (IsKeyDown(KEY_UP))
+        linear_vel = 80.0;
+    if (IsKeyDown(KEY_DOWN))
+        linear_vel = -80.0;
+    if (IsKeyDown(KEY_RIGHT))
+        angular_vel = 1.;
+    if (IsKeyDown(KEY_LEFT))
+        angular_vel = -1.;
+}
+
 int main()
 {
-    // Agent agent{{0, 0}, M_PI / 4};
-    Agent                 agent{{Visualizer::kScreenWidth / 2, Visualizer::kScreenHeight / 2}, M_PI / 4};
-    DeadReckon            dead_reckon{{agent.position_.x, agent.position_.y}, agent.heading_};
-    Odometry              odometry;
-    raylib::Vector2       opt_pose{agent.position_.x, agent.position_.y};
+    Agent      agent{{Visualizer::kScreenWidth / 2, Visualizer::kScreenHeight / 2}, M_PI / 4};
+    DeadReckon dead_reckon{{agent.position_.x, agent.position_.y}, agent.heading_};
+    Odometry   odometry;
+
     std::vector<Landmark> landmarks =
         generateLandmarks(kNumLandmarks, Visualizer::kScreenWidth, Visualizer::kScreenHeight, kMinLandmarkSpacing);
 
@@ -81,15 +69,7 @@ int main()
     while (!visualizer.shouldClose())
     {
         float linear_vel = 0.0, angular_vel = 0.0;
-
-        if (IsKeyDown(KEY_UP))
-            linear_vel = 80.0;
-        if (IsKeyDown(KEY_DOWN))
-            linear_vel = -80.0;
-        if (IsKeyDown(KEY_RIGHT))
-            angular_vel = 1.;
-        if (IsKeyDown(KEY_LEFT))
-            angular_vel = -1.;
+        manualControl(linear_vel, angular_vel);
 
         auto [linear_vel_meas, angular_vel_meas] = agent.readIMU(linear_vel, angular_vel);
         agent.updateMovement(linear_vel, angular_vel);
@@ -100,12 +80,12 @@ int main()
 
         graph_slam.processMeasurements(odometry.delta_position_, odometry.delta_heading_, agent.landmark_measurements_);
 
-        opt_pose = graph_slam.getLastOptPose();
+        auto opt_pose = graph_slam.getLastOptPose();
 
-        std::cout << "GT: " << agent.position_.x << " " << agent.position_.y << std::endl;
-        std::cout << "SL: " << opt_pose.x << " " << opt_pose.y << std::endl;
+        // std::cout << "GT: " << agent.position_.x << " " << agent.position_.y << std::endl;
+        // std::cout << "SL: " << opt_pose.x << " " << opt_pose.y << std::endl;
 
-        visualizer.draw(agent, landmarks, dead_reckon.position, opt_pose, graph_slam.landmarks_);
+        visualizer.draw(agent, landmarks, dead_reckon, opt_pose, graph_slam.landmarks_);
     }
     return 0;
 }

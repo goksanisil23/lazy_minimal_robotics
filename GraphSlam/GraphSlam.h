@@ -37,7 +37,7 @@ class GraphSlam
                              const float                            &agent_delta_head,
                              const std::vector<LandmarkMeasurement> &landmark_measurements);
 
-    raylib::Vector2 getLastOptPose();
+    Eigen::Vector3d getLastOptPose();
 
   private:
     void runOptimization();

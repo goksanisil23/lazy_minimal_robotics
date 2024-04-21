@@ -25,8 +25,8 @@ class Agent
     std::vector<LandmarkMeasurement> landmark_measurements_{};
 
     std::default_random_engine      noise_generator_;
-    std::normal_distribution<float> linear_vel_noise_dist_{0.0, 1.0};  // Linear velocity noise
-    std::normal_distribution<float> angular_vel_noise_dist_{0.0, 0.2}; // Angular velocity noise
+    std::normal_distribution<float> linear_vel_noise_dist_{0.1, 1.0};   // Linear velocity noise
+    std::normal_distribution<float> angular_vel_noise_dist_{0.04, 0.2}; // Angular velocity noise
     // std::normal_distribution<float> linear_vel_noise_dist_{0.0, 0};         // Linear velocity noise
     // std::normal_distribution<float> angular_vel_noise_dist_{0.0, 0};        // Angular velocity noise
     std::normal_distribution<float> landmark_range_noise_dist_{0.0, 0.0};   // Sensor noise for distance

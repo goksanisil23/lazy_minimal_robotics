@@ -15,6 +15,7 @@ set(GRAPH_SLAM_SRCS
     Agent.cpp
     Visualizer.cpp
     Odometry.cpp
+    DeadReckon.cpp
     GraphSlam.cpp
 )
 

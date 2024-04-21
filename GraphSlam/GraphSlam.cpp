@@ -156,8 +156,7 @@ void GraphSlam::runOptimization()
     most_recent_optimized_agent_pose_ = agent_poses_[agent_pose_idx_ - 1];
 }
 
-raylib::Vector2 GraphSlam::getLastOptPose()
+Eigen::Vector3d GraphSlam::getLastOptPose()
 {
-    return raylib::Vector2(most_recent_optimized_agent_pose_(0), most_recent_optimized_agent_pose_(1));
-    // agent_heading  = most_recent_optimized_agent_pose_(2);
+    return most_recent_optimized_agent_pose_;
 }

@@ -12,14 +12,15 @@
 #include <vector>
 
 #include "Agent.h"
+#include "DeadReckon.h"
 #include "Landmark.h"
 #include "Odometry.h"
 
 class Visualizer
 {
   public:
-    static constexpr int kScreenWidth{800};
-    static constexpr int kScreenHeight{450};
+    static constexpr int kScreenWidth{1200};
+    static constexpr int kScreenHeight{800};
 
     Visualizer();
 
@@ -27,8 +28,8 @@ class Visualizer
 
     void draw(const Agent                             &agent,
               const std::vector<Landmark>             &landmarks,
-              raylib::Vector2                         &dead_reckon,
-              raylib::Vector2                         &opt_pose,
+              DeadReckon                              &dead_reckon,
+              Eigen::Vector3d                         &opt_pose,
               std::unordered_map<int, Eigen::Vector2d> landmarks_slam);
 
     std::unique_ptr<raylib::Window> window_;
