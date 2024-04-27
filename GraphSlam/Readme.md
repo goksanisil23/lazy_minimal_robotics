@@ -32,7 +32,7 @@ Using the 2 measurements mentioned above, we introduce 2 **observation constrain
     - Comparing expected landmark observation to the landmark measurement allows to create a prediction error (residual).
 
 
-<img src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/GraphSlam/resources/graph_slam.png" width=50% height=50%>
+<img align="center" src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/GraphSlam/resources/graph_slam.png" width=50% height=50%>
 
 
 Ceres allows to describe and solve this graph optimization without explicitly deriving the Jacobians. Limited size of the optimization parameters (20 robot & ~150 landmark poses) allows us to run the optimization at each tick.
@@ -42,3 +42,4 @@ We prune the older robot poses and associated landmark observations from the gra
 For comparison, we visualize the solution of the graph-slam together with dead-reckoning which simply accumulates the delta-motion from the IMU-odometry.
 
 
+<img align="center" src="https://raw.githubusercontent.com/goksanisil23/lazy_minimal_robotics/main/GraphSlam/resources/graph_slam.gif" width=50% height=50%>
